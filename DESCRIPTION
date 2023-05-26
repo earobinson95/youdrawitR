@@ -2,12 +2,8 @@ Package: youdrawitR
 Type: Package
 Title: 'You Draw It'
 Version: 0.1.0
-Author: 
-  - Dillon Murphy
-  - Susan VanderPlas
-  - Heike Hofmann
-  - Emily Robinson
-Maintainer: The package maintainer <erobin17@calpoly.edu>
+Author: Dillon Murphy, Susan VanderPlas, Heike Hofmann, Emily Robinson
+Maintainer: Emily A. Robinson, Dillon Murphy, Susan VanderPlas, Heike Hofmann <erobin17@calpoly.edu>
 Description: ‘You Draw It’ is a feature that allows users to interact with a chart directly by drawing a line on their computer screen with a mouse. Originally introduced by the New York Times in 2015 for the purpose of interactive reading, this package adapts the use of the 'You Draw It' method as a tool for interactive testing of graphics.
 License: MIT + file LICENSE
 Encoding: UTF-8

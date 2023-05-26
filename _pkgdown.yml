@@ -2,3 +2,12 @@ url: https://earobinson95.github.io/youdrawitR/
 template:
   bootstrap: 5
 
+reference:
+- title: Hello
+
+# - subtitle: Hello to you
+  desc: >
+    Testing out pkgdown
+  contents:
+  - say_hello
+  - hello
