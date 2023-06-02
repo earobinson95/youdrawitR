@@ -10,3 +10,10 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.3
 URL: https://earobinson95.github.io/youdrawitR/
+Imports: 
+    jsonlite,
+    r2d3,
+    tibble
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
