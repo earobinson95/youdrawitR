@@ -17,7 +17,7 @@ linearDataGen(
 )
 }
 \arguments{
-\item{y_xbar}{The y-intercept of the line data}
+\item{y_xbar}{The y value when x is average.}
 
 \item{slope}{The slope of the true line data}
 

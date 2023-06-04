@@ -2,7 +2,7 @@
 #'
 #' Generates linear line and point data.
 #'
-#' @param y_xbar The y-intercept of the line data
+#' @param y_xbar The y value when x is average.
 #' @param slope The slope of the true line data
 #' @param sigma The standard deviation of the line data.
 #' @param points_choice Indicates which type of points to generate for point data. (default: "full")
