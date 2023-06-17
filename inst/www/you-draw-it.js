@@ -1,4 +1,4 @@
-// !preview r2d3 data = data_to_json(list(line_data = tibble(x = seq(0, 20, .25), y = exp((x-15)/30)), point_data = tibble(x = seq(0, 20, length.out = 30), y = exp((x-15)/30 + rnorm(30, 0, 0.05))))), options = list(free_draw = FALSE, draw_start = 10, points_end = 15, pin_start = TRUE, x_range = c(0,20), y_range = c(.5,2), line_style = list(strokeWidth = 4), data_line_color = 'steelblue', drawn_line_color = 'steelblue', show_finished = TRUE, shiny_message_loc = 'my_shiny_app', linear = 'true', points = "partial", aspect_ratio = 1, x_by = 0.5), dependencies = c('d3-jetpack'),
+// !preview r2d3 data = data_to_json(data), options = list(free_draw = TRUE, draw_start = 1, points_end = 20, pin_start = TRUE, x_range = NULL, y_range = NULL, line_style = list(strokeWidth = 4), data_line_color = 'steelblue', drawn_line_color = 'steelblue', show_finished = TRUE, shiny_message_loc = 'my_shiny_app', linear = 'true', points = "partial", aspect_ratio = 1, x_by = 0.25), dependencies = c('d3-jetpack'), d3_version = "5",
 
 // Make sure R has the following loaded
 // library(tibble)
@@ -170,7 +170,11 @@ function start_drawer(state, reset = true){
 
 function setup_drawable_points({line_data, free_draw, draw_start}){
   if(free_draw){
-    return line_data.map(d => ({x: d.x, y: null}));
+    return line_data
+    //remove the repeated x values from drawable_points
+      .filter((d, i, arr) => i === 0 || d.x !== arr[i - 1].x)
+      .map((d) => ({ x: d.x, y: null }));
+
   } else {
     return line_data
     .filter(d => d.x >= draw_start)
@@ -325,15 +329,16 @@ function fill_in_closest_point({drawable_points, pin_start, free_draw}, drag_x, 
   for(i = starting_index; i < drawable_points.length; i++){
     current_dist = Math.abs(drawable_points[i].x - drag_x);
     // If distances start going up we've passed the closest point
-if(last_dist - current_dist < 0) {
-  closest_index = i - 1;
-  break;
-}
-last_dist = current_dist;
+    if(last_dist - current_dist < 0) {
+      closest_index = i - 1;
+      break;
+    }
+    last_dist = current_dist;
+  }
+  
+  drawable_points[closest_index].y = drag_y;
 }
 
-drawable_points[closest_index].y = drag_y;
-}
 
 function setup_draw_watcher(svg, scales, on_drag, on_end){
   

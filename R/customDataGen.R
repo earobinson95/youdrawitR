@@ -14,6 +14,11 @@ customDataGen <- function(df, xvar, yvar) {
   x <- df[[xvar]]
   y <- df[[yvar]]
   
+  # Sort x and y variables in ascending order
+  sort_indices <- order(x)
+  x <- x[sort_indices]
+  y <- y[sort_indices]
+  
   # Obtain least squares regression coefficients
   lm.fit <- lm(y ~ x, data = df)
   yintercepthat <- coef(lm.fit)[1] |> as.numeric()
