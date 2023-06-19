@@ -16,6 +16,8 @@
 #' @export
 #' 
 #' @importFrom tibble tibble
+#' @importFrom dplyr %>% arrange
+#' @importFrom stats coef lm rnorm
 linearDataGen <- 
   function(y_xbar, 
            slope, 

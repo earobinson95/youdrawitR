@@ -11,8 +11,10 @@ LazyData: true
 RoxygenNote: 7.2.3
 URL: https://earobinson95.github.io/youdrawitR/
 Imports: 
+    dplyr,
     jsonlite,
     r2d3,
+    stats,
     tibble
 Suggests: 
     testthat (>= 3.0.0)
