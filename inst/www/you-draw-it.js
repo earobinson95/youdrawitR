@@ -168,27 +168,49 @@ function start_drawer(state, reset = true){
     }
 }
 
-function setup_drawable_points({line_data, free_draw, draw_start}){
-  if (free_draw) {
-    // interpolate x value (adds drawble_points between extreme x values so the line does not jump)
+  function simplify_data({line_data, x_range, threshold_percentage}) {
+    // simplify the drawable_points by binning the points based on a certain threshold_percentage
+    // only allow 3 points per bin (when too many points in a cluster drawing line takes a while and 
+    // if a large cluster can sometime be impossible to draw)
+    const bin_size = x_range * threshold_percentage;
+    const simplified_points = [];
+    let current_bin = [];
+  
+    for (let i = 0; i < line_data.length; i++) {
+      current_bin.push(line_data[i]);
+      
+      // if at last point or all points in bin x range have been added 
+      if (i === line_data.length - 1 || line_data[i + 1].x - current_bin[0].x > bin_size) {
+        // if there are more than 3 points in bin add the first, middle, and last point to drawable_points
+        if (current_bin.length >= 3) {
+          simplified_points.push(current_bin[0], current_bin[Math.floor(current_bin.length / 2)], current_bin[current_bin.length - 1]);
+          // else add all points in current bin to drawable_points
+        } else {
+          simplified_points.push(...current_bin);
+        }
+        // reset current bin to empty
+        current_bin = [];
+      }
+    }
+    return simplified_points;
+  }
+  
+  function interpolate_x({x_range, threshold_size, simplified_points}) {
+    // Set threshold distance as % of the x-range
+    const threshold_distance = x_range * threshold_size;
     
-    // Get range of x values from first and last point
-    const x_range = line_data[line_data.length - 1].x - line_data[0].x
-
-    // Set threshold distance as 10% of the x-range
-    const threshold_distance = x_range * 0.1;
-
+    // interpolate x value (adds drawble_points between extreme x values so the line does not jump)
     let drawable_points = [];
 
-    for (let i = 0; i < line_data.length; i++) {
-      const d = line_data[i];
+    for (let i = 0; i < simplified_points.length; i++) {
+      const d = simplified_points[i];
       drawable_points.push(d);
 
       // If there is another point after this one and their X-distance is larger than 
       // the threshold value then we need to add interpolated points between them.
-      if (i + 1 < line_data.length && Math.abs(line_data[i+1].x - d.x) > threshold_distance) {
+      if (i + 1 < simplified_points.length && Math.abs(simplified_points[i+1].x - d.x) > threshold_distance) {
 
-        const interpolated_x = d3.range(d.x + threshold_distance, line_data[i+1].x, threshold_distance);
+        const interpolated_x = d3.range(d.x + threshold_distance, simplified_points[i+1].x, threshold_distance);
 
         interpolated_x.forEach((x,i) => {
           drawable_points.push({
@@ -201,17 +223,30 @@ function setup_drawable_points({line_data, free_draw, draw_start}){
      }
      //remove the repeated x values from drawable_points
      return drawable_points
-              .filter((d, i, arr) => i === 0 || d.x !== arr[i - 1].x)
-              .map((d) => ({ x: d.x, y: null }));;
-  } else {
-    return line_data
-    .filter(d => d.x >= draw_start)    
-    .map((d,i) => ({
-      x: d.x,
-      y: i === 0 ? d.y: null
-    }));
-  }
 }
+
+  function setup_drawable_points({line_data, free_draw, draw_start}){
+    if (free_draw) {
+      // Get range of x values from first and last point
+      const x_range = line_data[line_data.length - 1].x - line_data[0].x
+      
+      let simplified_points = simplify_data({line_data, x_range, threshold_percentage: 0.05})
+      
+      let drawable_points = interpolate_x({x_range, threshold_size: 0.10, simplified_points})
+      
+      //remove the repeated x values from drawable_points
+      return drawable_points
+                .filter((d, i, arr) => i === 0 || d.x !== arr[i - 1].x)
+                .map((d) => ({ x: d.x, y: null }));;
+    } else {
+      return line_data
+      .filter(d => d.x >= draw_start)    
+      .map((d,i) => ({
+        x: d.x,
+        y: i === 0 ? d.y: null
+      }));
+    }
+  }
 
 function get_user_line_status({drawable_points, free_draw}){
   const num_points = drawable_points.length;
