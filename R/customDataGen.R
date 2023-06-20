@@ -9,7 +9,18 @@
 #' @return A list containing the point data and line data processed from inputted data frame.
 #'
 #' @export
+#' 
+#' @importFrom tibble tibble
+#' @importFrom stats lm coef na.omit
+#' @importFrom dplyr mutate across
 customDataGen <- function(df, xvar, yvar) {
+  # Filter out non-numeric and NA values
+  df <- df |> 
+    mutate(across(c(xvar, yvar), as.numeric)) |> 
+    na.omit() |> 
+    # Suppressing any 'NAs introduced by coercion' Warnings.
+    suppressWarnings()
+  
   # Extract x and y variables from the dataframe
   x <- df[[xvar]]
   y <- df[[yvar]]
@@ -19,7 +30,7 @@ customDataGen <- function(df, xvar, yvar) {
   x <- x[sort_indices]
   y <- y[sort_indices]
   
-  # Obtain least squares regression coefficients
+  # # Obtain least squares regression coefficients
   lm.fit <- lm(y ~ x, data = df)
   yintercepthat <- coef(lm.fit)[1] |> as.numeric()
   slopehat <- coef(lm.fit)[2] |> as.numeric()
