@@ -21,3 +21,18 @@ test_that("an error should be thrown when supplied y range doesn't cover data fu
                      y_range = y_range),
                "Supplied y range doesn't cover data fully.")
 })
+
+test_that("data is correct in output.",{
+  line_data <- data.frame(x = c(0,2), y = c(0,2))
+  point_data <- data.frame(x = c(0,2), y = c(0,2))
+  
+  y_range = range(point_data$y) + c(-1, 1)
+  
+  out <- drawr(data=list(line_data=line_data,
+                         point_data=point_data),
+               draw_start = 1,
+               y_range = y_range)
+  expect_equal(toString(out$x$data), 
+               '{"line_data":[{"x":0,"y":0,"_row":1},{"x":2,"y":2,"_row":2}],"point_data":[{"x":0,"y":0,"_row":1},{"x":2,"y":2,"_row":2}]}')
+  
+})

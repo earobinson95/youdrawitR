@@ -1,4 +1,4 @@
-// !preview r2d3 data = data_to_json(data), options = list(free_draw = TRUE, draw_start = 1, points_end = 20, pin_start = TRUE, x_range = NULL, y_range = NULL, line_style = list(strokeWidth = 4), data_line_color = 'steelblue', drawn_line_color = 'steelblue', show_finished = TRUE, shiny_message_loc = 'my_shiny_app', linear = 'true', points = "partial", aspect_ratio = 1, x_by = 0.25), dependencies = c('d3-jetpack'), d3_version = "5",
+// !preview r2d3 data = data_to_json(data), options = list(free_draw = TRUE, draw_start = 1, points_end = 20, pin_start = TRUE, x_range = NULL, y_range = NULL, line_style = list(strokeWidth = 4), data_line_color = 'steelblue', drawn_line_color = 'steelblue', show_finished = TRUE, shiny_message_loc = NULL, linear = 'true', title = "Test", x_lab = "x axis test", points = "partial", aspect_ratio = 1, x_by = 0.25), dependencies = c('d3-jetpack'), d3_version = "5", 
 
 // Make sure R has the following loaded
 // library(tibble)
@@ -13,11 +13,13 @@
 
 
 // define variable margins
-// if options.title == T then set top = 50, else top = 15 (see options list at top, currently, no title defined...)
+// if x_lab and title true top = 30, if only title, top = 40, if only x top = 15, if neither top = 10.
 const margin = {left: 55, 
                 right: 10, 
-                top: options.title ? 40: 10, 
-                bottom: options.title? 25: 55};
+               // top: options.title ? 40: 10, 
+              //  bottom: options.title? 25: 55};
+                top: (options.title && options.x_lab) ? 30 : (options.title ? 40 : (options.x_lab ? 15 : 10)),
+                bottom: (options.title && options.x_lab) ? 35 : (options.title ? 25 : (options.x_lab ? 35 : 55))};
 
 // define variable default line attributes
 // do not fill the line in (default is filled in black beneath the line)
@@ -165,6 +167,19 @@ function start_drawer(state, reset = true){
       })
       .style('font-family', system_font)
       .text(state.title);
+    }
+    
+    // Do we have an x-axis label?
+    if (state.x_lab) {
+      state.svg.append('text')
+      .at({
+        x: state.w / 2,
+        y: state.h + margin.bottom,
+        fontSize: '1rem',
+        textAnchor: 'middle',
+      })
+      .style('font-family', system_font)
+      .text(state.x_lab);
     }
 }
 
