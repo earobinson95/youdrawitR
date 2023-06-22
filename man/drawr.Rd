@@ -11,16 +11,17 @@ drawr(
   points_end = NULL,
   x_by = 0.25,
   free_draw = T,
-  points = "partial",
-  aspect_ratio = 1.5,
+  points = "full",
+  aspect_ratio = 1,
   title = "",
   x_range = NULL,
   y_range = NULL,
   x_lab = "",
   y_lab = "",
+  subtitle = "",
   drawn_line_color = "steelblue",
   data_tab1_color = "steelblue",
-  x_axis_buffer = 0.01,
+  x_axis_buffer = 0,
   y_axis_buffer = 0.05,
   show_finished = T,
   shiny_message_loc = NULL
@@ -31,7 +32,7 @@ drawr(
 
 \item{linear}{Whether the data represents a linear relationship (default: "true").}
 
-\item{draw_start}{The starting point for drawing (default: NULL).}
+\item{draw_start}{The starting point for drawing. Must be larger than minimum x value and smaller than maximum x value. If null is provided will use minimum x plus smallest possible positive number such that x min != sum. (default: NULL).}
 
 \item{points_end}{The ending point for the drawn line (default: NULL).}
 
@@ -39,32 +40,65 @@ drawr(
 
 \item{free_draw}{Whether to allow freehand drawing (default: T).}
 
-\item{points}{The type of points to be displayed (default: "partial").}
+\item{points}{The type of points to be displayed (default: "full").}
 
-\item{aspect_ratio}{The aspect ratio of the plot (default: 1.5).}
+\item{aspect_ratio}{The aspect ratio of the plot (default: 1).}
 
 \item{title}{The title of the plot. (default: "")}
 
-\item{x_range}{The range of x values. (default: NULL)}
+\item{x_range}{The range of x values. If null is provided will use range of x value line data provided. (default: NULL)}
 
-\item{y_range}{The range of y values.(default: NULL)}
+\item{y_range}{The range of y values. If null is provided will use range of y value line data provided (default: NULL)}
 
 \item{x_lab}{The x-axis label. (default: "")}
 
 \item{y_lab}{The y-axis label. (default: "")}
 
+\item{subtitle}{The subtitle of the plot. (default: "")}
+
 \item{drawn_line_color}{The color of the drawn line. (default: "steelblue")}
 
 \item{data_tab1_color}{The color of . (default: "steelblue")}
 
-\item{x_axis_buffer}{The buffer for the x-axis. (default: 0.01)}
+\item{x_axis_buffer}{The buffer for the x-axis added to the x range, calculated as a percent of x range. (default: 0)}
 
-\item{y_axis_buffer}{The buffer for the y-axis. (default: 0.05)}
+\item{y_axis_buffer}{The buffer for the y-axis added to the y range, calculated as a percent of y range. (default: 0.05)}
 
 \item{show_finished}{Whether to show the finished plot (default: TRUE).}
 
 \item{shiny_message_loc}{The location to display the shiny message. (default = NULL)}
 }
+\value{
+The rendered interactive you-draw-it plot. The plot is displayed
+automatically when function is called if not assigned to a variable for further use.
+}
 \description{
-Draws an interactive you-draw-it plot, calling the D3.js file.
+\code{drawr()} draws an interactive you-draw-it plot for interactive testing of graphics. 
+Data can be simulated using \code{linearDataGen()} or inputted using a data frame from 
+\code{customDataGen()}.
+}
+\examples{
+# Example 1: Simulating linear data and plotting
+data <- linearDataGen(y_xbar = 3.9,
+                      slope  = 0.8,
+                      sigma  = 2.8,
+                      x_min  = 0,
+                      x_max  = 20,
+                      N      = 40,
+                      x_by   = 0.25)
+print(drawr(data))
+
+# Example 2: Using custom data frame and custom options
+df <- data.frame(Time = c(0, 1, 2, 3, 4, 5, 9, NA, 12, 6, 7),
+                 Cost = c(NA, 2, 4, 6, 8, 10, 18, 12, 10, 14, 14))
+data <- customDataGen(df, "Time", "Cost")
+print(drawr(data           = data,
+            aspect_ratio   = 0.85,
+            title          = "Title",
+            subtitle       = "Subtitle",
+            x_lab          = "x-axis",
+            y_lab          = "y-axis",
+            x_axis_buffer  = 0,
+            y_axis_buffer  = 1))
+
 }

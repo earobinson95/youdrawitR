@@ -17,5 +17,6 @@ customDataGen(df, xvar, yvar)
 A list containing the point data and line data processed from inputted data frame.
 }
 \description{
-This function takes in an R data frame and processes it to generate data suitable for the `drawr` function.
+\code{customDataGen()} takes in an R data frame and processes it to generate data suitable for the
+\code{drawr()} function.
 }

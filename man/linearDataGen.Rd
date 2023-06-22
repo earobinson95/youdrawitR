@@ -39,5 +39,6 @@ linearDataGen(
 A list containing the generated point data and line data.
 }
 \description{
-Generates linear line and point data.
+\code{linearDataGen()} generates simulated linear line data and point data 
+suitable for the \code{drawr()} function.
 }

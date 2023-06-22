@@ -1,6 +1,7 @@
 #' Custom Data Generator
 #'
-#' This function takes in an R data frame and processes it to generate data suitable for the `drawr` function.
+#' \code{customDataGen()} takes in an R data frame and processes it to generate data suitable for the
+#' \code{drawr()} function.
 #'
 #' @param df An R data frame containing the input data.
 #' @param xvar The name of the x variable as a string.

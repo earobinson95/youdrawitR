@@ -1,6 +1,7 @@
 #' Linear Data Generation
 #'
-#' Generates linear line and point data.
+#' \code{linearDataGen()} generates simulated linear line data and point data 
+#' suitable for the \code{drawr()} function.
 #'
 #' @param y_xbar The y value when x is average.
 #' @param slope The slope of the true line data

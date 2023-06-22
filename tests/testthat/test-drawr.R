@@ -52,3 +52,31 @@ test_that("x and y ranges are calculated correctly if NULL. (and x and y buffer 
   expect_equal(out$x$options$x_range,  c(min(x), max(x)))
   expect_equal(out$x$options$y_range,  c(min(y), max(y)))
 })
+
+test_that("draw_start is correctly determined if NULL", {
+  # Define the datasets
+  datasets <- list(
+    data.frame(x = c(0, 2, 3), y = c(2, 4, 6)),
+    data.frame(x = c(100000, 200000, 300000), y = c(2, 4, 6)),
+    data.frame(x = c(-100000, -200000, -300000), y = c(2, 4, 6)),
+    data.frame(x = c(0.0000001, 0.0002, 0.0003), y = c(2, 4, 6))
+  )
+  
+  # Perform the tests for each dataset
+  for (i in seq_along(datasets)) {
+    line_data <- datasets[[i]]
+    point_data <- data.frame(x = c(2, 3), y = c(4, 6))
+    data <- list(line_data = line_data, point_data = point_data)
+    
+    # Call the drawr function with draw_start set to NULL
+    result <- drawr(data, draw_start = NULL)
+    
+    # Get the actual draw_start value
+    actual_draw_start <- result$x$options$draw_start
+    
+    # Calculate the expected draw_start value
+    expected_draw_start <- min(line_data$x) + max(.Machine$double.eps * abs(min(line_data$x)), .Machine$double.xmin)
+    
+    # Check if the actual draw_start matches the expected draw_start
+    expect_equal(actual_draw_start, expected_draw_start)}
+})
