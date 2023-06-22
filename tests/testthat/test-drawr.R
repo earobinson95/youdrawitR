@@ -36,3 +36,19 @@ test_that("data is correct in output.",{
                '{"line_data":[{"x":0,"y":0,"_row":1},{"x":2,"y":2,"_row":2}],"point_data":[{"x":0,"y":0,"_row":1},{"x":2,"y":2,"_row":2}]}')
   
 })
+
+test_that("x and y ranges are calculated correctly if NULL. (and x and y buffer is 0)",{
+  x <- sample(0:10, 2)
+  y <- sample(0:10, 2)
+  line_data <- data.frame(x = x, y = y)
+  point_data <- data.frame(x = x, y = y)
+
+  
+  out <- drawr(data=list(line_data=line_data,
+                         point_data=point_data),
+               draw_start = min(x) + 0.01,
+               x_axis_buffer = 0,
+               y_axis_buffer = 0)
+  expect_equal(out$x$options$x_range,  c(min(x), max(x)))
+  expect_equal(out$x$options$y_range,  c(min(y), max(y)))
+})
