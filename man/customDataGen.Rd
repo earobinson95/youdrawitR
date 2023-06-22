@@ -4,14 +4,14 @@
 \alias{customDataGen}
 \title{Custom Data Generator}
 \usage{
-customDataGen(df, xvar, yvar)
+customDataGen(df, xvar = NULL, yvar = NULL)
 }
 \arguments{
 \item{df}{An R data frame containing the input data.}
 
-\item{xvar}{The name of the x variable as a string.}
+\item{xvar}{The name of the x variable as a string. If null is provided will use first column of dataframe (default: NULL)}
 
-\item{yvar}{The name of the y variable as a string.}
+\item{yvar}{The name of the y variable as a string. If null is provided will use second column of dataframe. (default: NULL)}
 }
 \value{
 A list containing the point data and line data processed from inputted data frame.

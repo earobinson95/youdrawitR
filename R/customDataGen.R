@@ -4,8 +4,8 @@
 #' \code{drawr()} function.
 #'
 #' @param df An R data frame containing the input data.
-#' @param xvar The name of the x variable as a string.
-#' @param yvar The name of the y variable as a string.
+#' @param xvar The name of the x variable as a string. If null is provided will use first column of dataframe (default: NULL)
+#' @param yvar The name of the y variable as a string. If null is provided will use second column of dataframe. (default: NULL)
 #' 
 #' @return A list containing the point data and line data processed from inputted data frame.
 #'
@@ -14,17 +14,49 @@
 #' @importFrom tibble tibble
 #' @importFrom stats lm coef na.omit
 #' @importFrom dplyr mutate across
-customDataGen <- function(df, xvar, yvar) {
+customDataGen <- function(df, xvar = NULL, yvar = NULL) {
+  # Check if xvar is present in column names
+  if (!is.null(xvar) && !(xvar %in% colnames(df))) {
+    stop("Error: The specified x-variable does not exist in the column names of the data frame.")
+  }
+  
+  # Check if yvar is present in column names
+  if (!is.null(yvar) && !(yvar %in% colnames(df))) {
+    stop("Error: The specified y-variable does not exist in the column names of the data frame.")
+  }
+  
   # Filter out non-numeric and NA values
-  df <- df |> 
+  if (is.null(xvar)) {
+    tryCatch({
+    df <- df |> 
+      mutate(across(1:2, as.numeric)) |> 
+      na.omit() |> 
+      # Suppressing any 'NAs introduced by coercion' Warnings.
+      suppressWarnings()
+    }, error = function(e) {
+      # Handle the error here
+      stop("Error: The provided data frame does not have enough columns.")
+    })
+  }
+  else {df <- df |> 
     mutate(across(c(xvar, yvar), as.numeric)) |> 
     na.omit() |> 
     # Suppressing any 'NAs introduced by coercion' Warnings.
     suppressWarnings()
+  }
   
   # Extract x and y variables from the dataframe
-  x <- df[[xvar]]
-  y <- df[[yvar]]
+  if (is.null(xvar)) {
+    x <- df[[1]]  # Use the first column as x-variable
+  } else {
+    x <- df[[xvar]]  # Use the specified x-variable
+  }
+  
+  if (is.null(yvar)) {
+    y <- df[[2]]  # Use the second column as y-variable
+  } else {
+    y <- df[[yvar]]  # Use the specified y-variable
+  }
   
   # Sort x and y variables in ascending order
   sort_indices <- order(x)
