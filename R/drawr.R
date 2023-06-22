@@ -15,6 +15,7 @@
 #' @param y_range The range of y values.(default: NULL)
 #' @param x_lab The x-axis label. (default: "")
 #' @param y_lab The y-axis label. (default: "")
+#' @param subtitle The subtitle of the plot. (default: "")
 #' @param drawn_line_color The color of the drawn line. (default: "steelblue")
 #' @param data_tab1_color The color of . (default: "steelblue")
 #' @param x_axis_buffer The buffer for the x-axis. (default: 0.01)
@@ -40,6 +41,7 @@ drawr <- function(data,
                   y_range           = NULL,
                   x_lab             = "", 
                   y_lab             = "", 
+                  subtitle          = "",
                   drawn_line_color  = "steelblue",
                   data_tab1_color   = "steelblue", 
                   x_axis_buffer     = 0.01, 
@@ -98,7 +100,10 @@ drawr <- function(data,
                             pin_start         = T, 
                             x_range           = x_range,
                             x_by              = x_by,
+                            x_lab             = x_lab,
                             y_range           = y_range,
+                            y_lab             = y_lab,
+                            subtitle          = subtitle,
                             line_style        = NULL,
                             data_tab1_color   = data_tab1_color, 
                             drawn_line_color  = drawn_line_color,
