@@ -1,6 +1,7 @@
 #' Linear Data Generation
 #'
-#' Generates linear line and point data.
+#' \code{linearDataGen()} generates simulated linear line data (with equation info) and point data 
+#' suitable for the \code{drawr()} function.
 #'
 #' @param y_xbar The y value when x is average.
 #' @param slope The slope of the true line data
@@ -12,7 +13,7 @@
 #' @param x_max The maximum x value. (default: 20)
 #' @param x_by The increment value for x. (default: 0.25)
 #' 
-#' @return A list containing the generated point data and line data.
+#' @return A list containing the generated point data and line data (with equation info).
 #' @export
 #' 
 #' @importFrom tibble tibble
@@ -55,7 +56,9 @@ linearDataGen <-
     # Simulate best fit line data
     line_data <- tibble(data = "line_data", 
                         x = seq(x_min, x_max, x_by), 
-                        y = yintercepthat + slopehat*x)
+                        y = yintercepthat + slopehat*x,
+                        coef = coef(lm.fit)["x"] |> as.numeric(),
+                        int = coef(lm.fit)["(Intercept)"] |> as.numeric())
     
     data <- list(point_data = point_data, line_data = line_data)
     

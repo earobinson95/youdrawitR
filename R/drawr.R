@@ -1,29 +1,57 @@
 #' Drawr
 #'
-#' Draws an interactive you-draw-it plot, calling the D3.js file.
+#' \code{drawr()} draws an interactive you-draw-it plot for interactive testing of graphics. 
+#' Data can be simulated using \code{linearDataGen()} or inputted using a data frame from 
+#' \code{customDataGen()}.
 #'
-#' @param data The data containing line data and point data.
+#'
+#' @param data The data containing line data (with equation info) and point data.
 #' @param linear Whether the data represents a linear relationship (default: "true").
-#' @param draw_start The starting point for drawing (default: NULL).
+#' @param draw_start The starting point for drawing. Must be larger than minimum x value and smaller than maximum x value. If null is provided will use minimum x plus smallest possible positive number such that x min != sum. (default: NULL).
 #' @param points_end The ending point for the drawn line (default: NULL).
 #' @param x_by The increment value for x. (default: 0.25)
 #' @param free_draw Whether to allow freehand drawing (default: T).
-#' @param points The type of points to be displayed (default: "partial").
-#' @param aspect_ratio The aspect ratio of the plot (default: 1.5).
+#' @param points The type of points to be displayed (default: "full").
+#' @param aspect_ratio The aspect ratio of the plot (default: 1).
 #' @param title The title of the plot. (default: "")
-#' @param x_range The range of x values. (default: NULL)
-#' @param y_range The range of y values.(default: NULL)
+#' @param x_range The range of x values. If null is provided will use range of x value line data provided. (default: NULL)
+#' @param y_range The range of y values. If null is provided will use range of y value line data provided (default: NULL)
 #' @param x_lab The x-axis label. (default: "")
 #' @param y_lab The y-axis label. (default: "")
 #' @param subtitle The subtitle of the plot. (default: "")
 #' @param drawn_line_color The color of the drawn line. (default: "steelblue")
 #' @param data_tab1_color The color of . (default: "steelblue")
-#' @param x_axis_buffer The buffer for the x-axis. (default: 0.01)
-#' @param y_axis_buffer The buffer for the y-axis. (default: 0.05)
+#' @param x_axis_buffer The buffer for the x-axis added to the x range, calculated as a percent of x range. Only used if x_range is NULL, and must be greater than or equal to 0. (default: 0)
+#' @param y_axis_buffer The buffer for the y-axis added to the y range, calculated as a percent of y range. Only used if y_range is NULL, and must be greater than or equal to 0. (default: 0.05)
 #' @param show_finished Whether to show the finished plot (default: TRUE).
 #' @param shiny_message_loc The location to display the shiny message. (default = NULL)
 #' 
-#' @return NULL
+#' @examples
+#' # Example 1: Simulating linear data and plotting
+#' data <- linearDataGen(y_xbar = 3.9,
+#'                       slope  = 0.8,
+#'                       sigma  = 2.8,
+#'                       x_min  = 0,
+#'                       x_max  = 20,
+#'                       N      = 40,
+#'                       x_by   = 0.25)
+#' print(drawr(data))
+#'
+#' # Example 2: Using custom data frame and custom options
+#' df <- data.frame(Time = c(0, 1, 2, 3, 4, 5, 9, NA, 12, 6, 7),
+#'                  Cost = c(NA, 2, 4, 6, 8, 10, 18, 12, 10, 14, 14))
+#' data <- customDataGen(df, "Time", "Cost")
+#' print(drawr(data           = data,
+#'             aspect_ratio   = 0.85,
+#'             title          = "Title",
+#'             subtitle       = "Subtitle",
+#'             x_lab          = "x-axis",
+#'             y_lab          = "y-axis",
+#'             x_axis_buffer  = 0,
+#'             y_axis_buffer  = 1))
+#' 
+#' @return The rendered interactive you-draw-it plot. The plot is displayed
+#' automatically when function is called if not assigned to a variable for further use.
 #' @export
 #' 
 #' @importFrom r2d3 r2d3
@@ -34,8 +62,8 @@ drawr <- function(data,
                   points_end        = NULL,
                   x_by              = 0.25,
                   free_draw         = T,
-                  points            = "partial",
-                  aspect_ratio      = 1.5,
+                  points            = "full",
+                  aspect_ratio      = 1,
                   title             = "", 
                   x_range           = NULL, 
                   y_range           = NULL,
@@ -44,14 +72,21 @@ drawr <- function(data,
                   subtitle          = "",
                   drawn_line_color  = "steelblue",
                   data_tab1_color   = "steelblue", 
-                  x_axis_buffer     = 0.01, 
+                  x_axis_buffer     = 0, 
                   y_axis_buffer     = 0.05,
                   show_finished     = T,
                   shiny_message_loc = NULL) {
+  if (x_axis_buffer < 0) {
+    stop("Error: x_axis_buffer must be greater than or equal to 0")
+  }
+  
+  if (y_axis_buffer < 0) {
+    stop("Error: y_axis_buffer must be greater than or equal to 0")
+  }
   
   line_data  <- data$line_data
   point_data <- data$point_data
-  
+
   x_min <- min(line_data$x)
   x_max <- max(line_data$x)
   y_min <- min(line_data$y)
@@ -75,6 +110,36 @@ drawr <- function(data,
     }
   }
   
+  # If x_range is not null or x_axis_buffer > 0 recalculate line_data so that it takes up entire range
+  if (!(identical(x_range, range(line_data$x))) || x_axis_buffer > 0) {
+    if (x_min != min(x_range) && x_max == max(x_range)) {
+      x_min <- min(x_range)
+      y_min <- line_data$coef[1] * x_min + line_data$int[1]
+      x <- c(x_min, line_data$x)
+      y <- c(y_min, line_data$y)
+    }
+    else if (x_max != max(x_range) && x_min == min(x_range)) {
+      x_max <- max(x_range)
+      y_max <- line_data$coef[1] * x_max + line_data$int[1]
+      x <- c(line_data$x, x_max)
+      y <- c(line_data$y, y_max)
+    }
+    else {
+      x_min <- min(x_range)
+      y_min <- line_data$coef[1] * x_min + line_data$int[1]
+      x_max <- max(x_range)
+      y_max <- line_data$coef[1] * x_max + line_data$int[1]
+      x <- c(x_min, line_data$x, x_max)
+      y <- c(y_min, line_data$y, y_max)
+    }
+    data$line_data <- tibble(x = x,
+                             y = y)
+  }
+  
+  if (is.null(draw_start)) {
+    draw_start <- x_min + max(.Machine$double.eps * abs(x_min), .Machine$double.xmin)
+  }
+  
   if ((draw_start <= x_min) | (draw_start >= x_max)) {
     stop("Draw start is out of data range.")
   }
@@ -87,7 +152,7 @@ drawr <- function(data,
                      rownames = TRUE)
   } 
   
-  r2d3(data   = data_to_json(data), 
+  return(r2d3(data   = data_to_json(data), 
              script = system.file("www/you-draw-it.js", package = "youdrawitR"),
              d3_version = "5",
              dependencies = c("d3-jetpack"),
@@ -110,6 +175,5 @@ drawr <- function(data,
                             show_finished     = show_finished,
                             shiny_message_loc = shiny_message_loc,
                             title             = title)
-  )
-  
+  ))
 }

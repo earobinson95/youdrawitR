@@ -36,8 +36,9 @@ linearDataGen(
 \item{x_by}{The increment value for x. (default: 0.25)}
 }
 \value{
-A list containing the generated point data and line data.
+A list containing the generated point data and line data (with equation info).
 }
 \description{
-Generates linear line and point data.
+\code{linearDataGen()} generates simulated linear line data (with equation info) and point data 
+suitable for the \code{drawr()} function.
 }
