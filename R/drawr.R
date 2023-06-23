@@ -5,7 +5,7 @@
 #' \code{customDataGen()}.
 #'
 #'
-#' @param data The data containing line data and point data.
+#' @param data The data containing line data (with equation info) and point data.
 #' @param linear Whether the data represents a linear relationship (default: "true").
 #' @param draw_start The starting point for drawing. Must be larger than minimum x value and smaller than maximum x value. If null is provided will use minimum x plus smallest possible positive number such that x min != sum. (default: NULL).
 #' @param points_end The ending point for the drawn line (default: NULL).
@@ -21,8 +21,8 @@
 #' @param subtitle The subtitle of the plot. (default: "")
 #' @param drawn_line_color The color of the drawn line. (default: "steelblue")
 #' @param data_tab1_color The color of . (default: "steelblue")
-#' @param x_axis_buffer The buffer for the x-axis added to the x range, calculated as a percent of x range. (default: 0)
-#' @param y_axis_buffer The buffer for the y-axis added to the y range, calculated as a percent of y range. (default: 0.05)
+#' @param x_axis_buffer The buffer for the x-axis added to the x range, calculated as a percent of x range. Only used if x_range is NULL, and must be greater than or equal to 0. (default: 0)
+#' @param y_axis_buffer The buffer for the y-axis added to the y range, calculated as a percent of y range. Only used if y_range is NULL, and must be greater than or equal to 0. (default: 0.05)
 #' @param show_finished Whether to show the finished plot (default: TRUE).
 #' @param shiny_message_loc The location to display the shiny message. (default = NULL)
 #' 
@@ -76,18 +76,21 @@ drawr <- function(data,
                   y_axis_buffer     = 0.05,
                   show_finished     = T,
                   shiny_message_loc = NULL) {
+  if (x_axis_buffer < 0) {
+    stop("Error: x_axis_buffer must be greater than or equal to 0")
+  }
+  
+  if (y_axis_buffer < 0) {
+    stop("Error: y_axis_buffer must be greater than or equal to 0")
+  }
   
   line_data  <- data$line_data
   point_data <- data$point_data
-  
+
   x_min <- min(line_data$x)
   x_max <- max(line_data$x)
   y_min <- min(line_data$y)
   y_max <- max(line_data$y)
-  
-  if (is.null(draw_start)) {
-    draw_start <- x_min + max(.Machine$double.eps * abs(x_min), .Machine$double.xmin)
-  }
   
   if (is.null(x_range)) {
     x_buffer <- (x_max - x_min) * x_axis_buffer
@@ -105,6 +108,36 @@ drawr <- function(data,
     if (y_range[1] > y_min | y_range[2] < y_max) {
       stop("Supplied y range doesn't cover data fully.")
     }
+  }
+  
+  # If x_range is not null or x_axis_buffer > 0 recalculate line_data so that it takes up entire range
+  if (!(identical(x_range, range(line_data$x))) || x_axis_buffer > 0) {
+    if (x_min != min(x_range) && x_max == max(x_range)) {
+      x_min <- min(x_range)
+      y_min <- line_data$coef[1] * x_min + line_data$int[1]
+      x <- c(x_min, line_data$x)
+      y <- c(y_min, line_data$y)
+    }
+    else if (x_max != max(x_range) && x_min == min(x_range)) {
+      x_max <- max(x_range)
+      y_max <- line_data$coef[1] * x_max + line_data$int[1]
+      x <- c(line_data$x, x_max)
+      y <- c(line_data$y, y_max)
+    }
+    else {
+      x_min <- min(x_range)
+      y_min <- line_data$coef[1] * x_min + line_data$int[1]
+      x_max <- max(x_range)
+      y_max <- line_data$coef[1] * x_max + line_data$int[1]
+      x <- c(x_min, line_data$x, x_max)
+      y <- c(y_min, line_data$y, y_max)
+    }
+    data$line_data <- tibble(x = x,
+                             y = y)
+  }
+  
+  if (is.null(draw_start)) {
+    draw_start <- x_min + max(.Machine$double.eps * abs(x_min), .Machine$double.xmin)
   }
   
   if ((draw_start <= x_min) | (draw_start >= x_max)) {

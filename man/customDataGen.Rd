@@ -14,7 +14,7 @@ customDataGen(df, xvar = NULL, yvar = NULL)
 \item{yvar}{The name of the y variable as a string. If null is provided will use second column of dataframe. (default: NULL)}
 }
 \value{
-A list containing the point data and line data processed from inputted data frame.
+A list containing the point data and line data (with equation info) processed from inputted data frame.
 }
 \description{
 \code{customDataGen()} takes in an R data frame and processes it to generate data suitable for the

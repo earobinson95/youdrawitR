@@ -28,7 +28,7 @@ drawr(
 )
 }
 \arguments{
-\item{data}{The data containing line data and point data.}
+\item{data}{The data containing line data (with equation info) and point data.}
 
 \item{linear}{Whether the data represents a linear relationship (default: "true").}
 
@@ -60,9 +60,9 @@ drawr(
 
 \item{data_tab1_color}{The color of . (default: "steelblue")}
 
-\item{x_axis_buffer}{The buffer for the x-axis added to the x range, calculated as a percent of x range. (default: 0)}
+\item{x_axis_buffer}{The buffer for the x-axis added to the x range, calculated as a percent of x range. Only used if x_range is NULL, and must be greater than or equal to 0. (default: 0)}
 
-\item{y_axis_buffer}{The buffer for the y-axis added to the y range, calculated as a percent of y range. (default: 0.05)}
+\item{y_axis_buffer}{The buffer for the y-axis added to the y range, calculated as a percent of y range. Only used if y_range is NULL, and must be greater than or equal to 0. (default: 0.05)}
 
 \item{show_finished}{Whether to show the finished plot (default: TRUE).}
 

@@ -1,6 +1,8 @@
 test_that("error should be thrown if draw_start is out outside of x_range", {
   line_data <- data.frame(x = c(1:10), y = runif(10))
   point_data <- data.frame(x = c(1, 2, 5 ,8, 10), y = runif(5))
+  line_data$coef <- rep(2.5, length(line_data$x))
+  line_data$int <- rep(2.5, length(line_data$x))
 
   expect_error(drawr(data = list(line_data = line_data, 
                                  point_data = point_data),
@@ -12,6 +14,8 @@ test_that("error should be thrown if draw_start is out outside of x_range", {
 
 test_that("an error should be thrown when supplied y range doesn't cover data fully.",{
   line_data <- data.frame(x = c(1:10), y = runif(10))
+  line_data$coef <- rep(2.5, length(line_data$x))
+  line_data$int <- rep(2.5, length(line_data$x))
   point_data <- data.frame(x = c(1, 2, 5 ,8, 10), y = runif(5))
   y_range = range(point_data$y) + c(1, -1)
 
@@ -25,6 +29,8 @@ test_that("an error should be thrown when supplied y range doesn't cover data fu
 test_that("data is correct in output.",{
   line_data <- data.frame(x = c(0,2), y = c(0,2))
   point_data <- data.frame(x = c(0,2), y = c(0,2))
+  line_data$coef <- rep(2.5, length(line_data$x))
+  line_data$int <- rep(2.5, length(line_data$x))
   
   y_range = range(point_data$y) + c(-1, 1)
   
@@ -33,16 +39,56 @@ test_that("data is correct in output.",{
                draw_start = 1,
                y_range = y_range)
   expect_equal(toString(out$x$data), 
-               '{"line_data":[{"x":0,"y":0,"_row":1},{"x":2,"y":2,"_row":2}],"point_data":[{"x":0,"y":0,"_row":1},{"x":2,"y":2,"_row":2}]}')
-  
+               '{"line_data":[{"x":0,"y":0,"coef":2.5,"int":2.5,"_row":1},{"x":2,"y":2,"coef":2.5,"int":2.5,"_row":2}],"point_data":[{"x":0,"y":0,"_row":1},{"x":2,"y":2,"_row":2}]}')
 })
+
+test_that("data is correct in output if x_max of range is not equal",{
+  line_data <- data.frame(x = c(0,2), y = c(0,2))
+  point_data <- data.frame(x = c(0,2), y = c(0,2))
+  line_data$coef <- rep(2.5, length(line_data$x))
+  line_data$int <- rep(2.5, length(line_data$x))
+  
+  out <- drawr(data=list(line_data=line_data,
+                         point_data=point_data),
+               x_range = c(0, 3))
+  expect_equal(toString(out$x$data), 
+               '{"line_data":[{"x":0,"y":0,"_row":1},{"x":2,"y":2,"_row":2},{"x":3,"y":10,"_row":3}],"point_data":[{"x":0,"y":0,"_row":1},{"x":2,"y":2,"_row":2}]}')
+})
+
+test_that("data is correct in output if x_min of range is not equal",{
+  line_data <- data.frame(x = c(0,2), y = c(0,2))
+  point_data <- data.frame(x = c(0,2), y = c(0,2))
+  line_data$coef <- rep(2.5, length(line_data$x))
+  line_data$int <- rep(2.5, length(line_data$x))
+  
+  out <- drawr(data=list(line_data=line_data,
+                         point_data=point_data),
+               x_range = c(-1, 2))
+  expect_equal(toString(out$x$data), 
+               '{"line_data":[{"x":-1,"y":0,"_row":1},{"x":0,"y":0,"_row":2},{"x":2,"y":2,"_row":3}],"point_data":[{"x":0,"y":0,"_row":1},{"x":2,"y":2,"_row":2}]}')
+})
+
+test_that("data is correct in output if all of range is not equal",{
+  line_data <- data.frame(x = c(0,2), y = c(0,2))
+  point_data <- data.frame(x = c(0,2), y = c(0,2))
+  line_data$coef <- rep(2.5, length(line_data$x))
+  line_data$int <- rep(2.5, length(line_data$x))
+  
+  out <- drawr(data=list(line_data=line_data,
+                         point_data=point_data),
+               x_range = c(-1, 3))
+  expect_equal(toString(out$x$data), 
+               '{"line_data":[{"x":-1,"y":0,"_row":1},{"x":0,"y":0,"_row":2},{"x":2,"y":2,"_row":3},{"x":3,"y":10,"_row":4}],"point_data":[{"x":0,"y":0,"_row":1},{"x":2,"y":2,"_row":2}]}')
+})
+
 
 test_that("x and y ranges are calculated correctly if NULL. (and x and y buffer is 0)",{
   x <- sample(0:10, 2)
   y <- sample(0:10, 2)
   line_data <- data.frame(x = x, y = y)
   point_data <- data.frame(x = x, y = y)
-
+  line_data$coef <- rep(2.5, length(line_data$x))
+  line_data$int <- rep(2.5, length(line_data$x))
   
   out <- drawr(data=list(line_data=line_data,
                          point_data=point_data),
@@ -56,10 +102,10 @@ test_that("x and y ranges are calculated correctly if NULL. (and x and y buffer 
 test_that("draw_start is correctly determined if NULL", {
   # Define the datasets
   datasets <- list(
-    data.frame(x = c(0, 2, 3), y = c(2, 4, 6)),
-    data.frame(x = c(100000, 200000, 300000), y = c(2, 4, 6)),
-    data.frame(x = c(-100000, -200000, -300000), y = c(2, 4, 6)),
-    data.frame(x = c(0.0000001, 0.0002, 0.0003), y = c(2, 4, 6))
+    data.frame(x = c(0, 2, 3), y = c(2, 4, 6), coef = c(1,1,1), int = c(1,1,1)),
+    data.frame(x = c(100000, 200000, 300000), y = c(2, 4, 6), coef = c(1,1,1), int = c(1,1,1)),
+    data.frame(x = c(-100000, -200000, -300000), y = c(2, 4, 6), coef = c(1,1,1), int = c(1,1,1)),
+    data.frame(x = c(0.0000001, 0.0002, 0.0003), y = c(2, 4, 6), coef = c(1,1,1), int = c(1,1,1))
   )
   
   # Perform the tests for each dataset

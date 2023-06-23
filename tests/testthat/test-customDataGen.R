@@ -6,8 +6,8 @@ test_that("customDataGen returns correct dimensions", {
   result <- customDataGen(df = df, xvar = "x", yvar = "y")
   
   # Verify that line data has expected number of rows and columns
-  # 1 for data type (line), 1 for x, 1 for y
-  expect_equal(dim(result$line_data),c(3L ,3L))
+  # 1 for data type (line), 1 for x, 1 for y, 1 for coef, and 1 for int
+  expect_equal(dim(result$line_data),c(3L ,5L))
   
   # Verify that point data has expected number of rows and columns 
   # 1 for data type (point), 1 for x, 1 for y

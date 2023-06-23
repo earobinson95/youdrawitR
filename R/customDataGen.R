@@ -7,7 +7,7 @@
 #' @param xvar The name of the x variable as a string. If null is provided will use first column of dataframe (default: NULL)
 #' @param yvar The name of the y variable as a string. If null is provided will use second column of dataframe. (default: NULL)
 #' 
-#' @return A list containing the point data and line data processed from inputted data frame.
+#' @return A list containing the point data and line data (with equation info) processed from inputted data frame.
 #'
 #' @export
 #' 
@@ -71,7 +71,9 @@ customDataGen <- function(df, xvar = NULL, yvar = NULL) {
   # Create line data with x and y values
   line_data <- tibble(data = "line_data",
                       x = x,
-                      y = yintercepthat + slopehat * x)
+                      y = yintercepthat + slopehat * x,
+                      coef = coef(lm.fit)["x"] |> as.numeric(),
+                      int = coef(lm.fit)["(Intercept)"] |> as.numeric())
   
   # Create point data with x and y values
   point_data <- tibble(data = "point_data",
