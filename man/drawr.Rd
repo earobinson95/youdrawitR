@@ -34,21 +34,21 @@ drawr(
 
 \item{draw_start}{The starting point for drawing. Must be larger than minimum x value and smaller than maximum x value. If null is provided will use minimum x plus smallest possible positive number such that x min != sum. (default: NULL).}
 
-\item{points_end}{The ending point for the drawn line (default: NULL).}
+\item{points_end}{The ending x-value for the points. Will only affect the graph if points are "partial" (default: NULL).}
 
 \item{x_by}{The increment value for x. (default: 0.25)}
 
 \item{free_draw}{Whether to allow freehand drawing (default: T).}
 
-\item{points}{The type of points to be displayed (default: "full").}
+\item{points}{The type of points to be displayed. Choices: "full" or "partial". Full will always display all points, while for partial the user can choose not to include points. (default: "full").}
 
 \item{aspect_ratio}{The aspect ratio of the plot (default: 1).}
 
 \item{title}{The title of the plot. (default: "")}
 
-\item{x_range}{The range of x values. If null is provided will use range of x value line data provided. (default: NULL)}
+\item{x_range}{The range of x values. If null is provided will use range of line data x values. WARNING: even if x_range is smaller than x range of point data, the line is still fitted for all points in dataset. (default: NULL)}
 
-\item{y_range}{The range of y values. If null is provided will use range of y value line data provided (default: NULL)}
+\item{y_range}{The range of y values. If null is provided will use range of line data y values. WARNING: even if y_range is smaller than y range of point data, the line is still fitted for all points in dataset. (default: NULL)}
 
 \item{x_lab}{The x-axis label. (default: "")}
 

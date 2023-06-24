@@ -8,14 +8,14 @@
 #' @param data The data containing line data (with equation info) and point data.
 #' @param linear Whether the data represents a linear relationship (default: "true").
 #' @param draw_start The starting point for drawing. Must be larger than minimum x value and smaller than maximum x value. If null is provided will use minimum x plus smallest possible positive number such that x min != sum. (default: NULL).
-#' @param points_end The ending point for the drawn line (default: NULL).
+#' @param points_end The ending x-value for the points. Will only affect the graph if points are "partial" (default: NULL).
 #' @param x_by The increment value for x. (default: 0.25)
 #' @param free_draw Whether to allow freehand drawing (default: T).
-#' @param points The type of points to be displayed (default: "full").
+#' @param points The type of points to be displayed. Choices: "full" or "partial". Full will always display all points, while for partial the user can choose not to include points. (default: "full").
 #' @param aspect_ratio The aspect ratio of the plot (default: 1).
 #' @param title The title of the plot. (default: "")
-#' @param x_range The range of x values. If null is provided will use range of x value line data provided. (default: NULL)
-#' @param y_range The range of y values. If null is provided will use range of y value line data provided (default: NULL)
+#' @param x_range The range of x values. If null is provided will use range of line data x values. WARNING: even if x_range is smaller than x range of point data, the line is still fitted for all points in dataset. (default: NULL)
+#' @param y_range The range of y values. If null is provided will use range of line data y values. WARNING: even if y_range is smaller than y range of point data, the line is still fitted for all points in dataset. (default: NULL)
 #' @param x_lab The x-axis label. (default: "")
 #' @param y_lab The y-axis label. (default: "")
 #' @param subtitle The subtitle of the plot. (default: "")
@@ -96,6 +96,14 @@ drawr <- function(data,
     x_buffer <- (x_max - x_min) * x_axis_buffer
     x_range <- c(x_min - x_buffer, x_max + x_buffer)
   }
+  else {
+    if (length(x_range) != 2) {
+      stop("Error: Please supply min and max x values for x_range")
+    }
+    if (sum(point_data$x >= x_range[1]) < 2 || sum(point_data$x <= x_range[2]) < 2) {
+      stop("Error: The provided x_range does not include at least two points from point_data.")
+    }
+  }
   if (is.null(y_range)) {
     y_buffer <- (y_max - y_min) * y_axis_buffer
     y_range <- c(y_min - y_buffer, y_max + y_buffer)
@@ -105,37 +113,58 @@ drawr <- function(data,
       }
     }
   } else {
+    if (length(y_range) != 2) {
+      stop("Error: Please supply min and max y values for y_range")
+    }
+    if (sum(point_data$y >= y_range[1]) < 2 || sum(point_data$x <= y_range[2]) < 2) {
+      stop("Error: The provided y_range does not include at least two points from point_data.")
+    }
     if (y_range[1] > y_min | y_range[2] < y_max) {
-      stop("Supplied y range doesn't cover data fully.")
+      warning("The provided y_range does not cover data, the line will still be fitted from entire dataset.")
+      point_data <- point_data[point_data$y >= y_range[1] & point_data$y <= y_range[2], ]
     }
   }
   
-  # If x_range is not null or x_axis_buffer > 0 recalculate line_data so that it takes up entire range
-  if (!(identical(x_range, range(line_data$x))) || x_axis_buffer > 0) {
-    if (x_min != min(x_range) && x_max == max(x_range)) {
-      x_min <- min(x_range)
-      y_min <- line_data$coef[1] * x_min + line_data$int[1]
-      x <- c(x_min, line_data$x)
-      y <- c(y_min, line_data$y)
+  # If x_range is not equal to range of data recalculate line_data so that it takes up 
+  # entire range/only range
+  ## Depends if both greater, less than, or one or other
+  if (!(identical(x_range, range(line_data$x)))) {
+    min_range <- x_range[1]
+    max_range <- x_range[2]
+    # If given range larger than line range increase line size
+    if (x_min > min_range || x_max < max_range) {
+      if (x_min > min_range && x_max >= max_range) {
+        y_min <- line_data$coef[1] * min_range + line_data$int[1]
+        x <- c(min_range, line_data$x)
+        y <- c(y_min, line_data$y)
+      }
+      else if (x_max < max_range && x_min <= min_range) {
+        y_max <- line_data$coef[1] * max_range + line_data$int[1]
+        x <- c(line_data$x, max_range)
+        y <- c(line_data$y, y_max)
+      }
+      else {
+        y_min <- line_data$coef[1] * min_range + line_data$int[1]
+        y_max <- line_data$coef[1] * max_range + line_data$int[1]
+        x <- c(min_range, line_data$x, max_range)
+        y <- c(y_min, line_data$y, y_max)
+      }
+      line_data <- tibble(x = x,
+                          y = y)
     }
-    else if (x_max != max(x_range) && x_min == min(x_range)) {
-      x_max <- max(x_range)
-      y_max <- line_data$coef[1] * x_max + line_data$int[1]
-      x <- c(line_data$x, x_max)
-      y <- c(line_data$y, y_max)
+    
+    # If provided range is less than line and point range, remove points and line data outside of range
+    if (x_min < min_range || x_max > max_range) {
+      warning("The provided x_range does not cover data, the line will still be fitted
+              from entire dataset.")
+      line_data <- line_data[line_data$x >= min_range & line_data$x <= max_range, ]
+      point_data <- point_data[point_data$x >= min_range & point_data$x <= max_range, ]
     }
-    else {
-      x_min <- min(x_range)
-      y_min <- line_data$coef[1] * x_min + line_data$int[1]
-      x_max <- max(x_range)
-      y_max <- line_data$coef[1] * x_max + line_data$int[1]
-      x <- c(x_min, line_data$x, x_max)
-      y <- c(y_min, line_data$y, y_max)
-    }
-    data$line_data <- tibble(x = x,
-                             y = y)
   }
   
+  data$line_data <- line_data
+  data$point_data <- point_data
+  # If draw_start is NULL calculate lowest possible draw_start such that draw_start != x_min
   if (is.null(draw_start)) {
     draw_start <- x_min + max(.Machine$double.eps * abs(x_min), .Machine$double.xmin)
   }
