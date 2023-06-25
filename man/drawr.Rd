@@ -25,6 +25,7 @@ drawr(
   x_axis_buffer = 0,
   y_axis_buffer = 0.05,
   show_finished = T,
+  show_tooltip = F,
   shiny_message_loc = NULL
 )
 }
@@ -35,13 +36,13 @@ drawr(
 
 \item{log_base}{The base of the log scale, only affects graph if not linear is not "true". If NULL will use natrual logarithm. Log_base should match log_base choice in \code{customDataGen()} function (default = NULL)}
 
-\item{draw_start}{The starting point for drawing. Must be larger than minimum x value and smaller than maximum x value. If null is provided will use minimum x plus smallest possible positive number such that x min != sum. (default: NULL).}
+\item{draw_start}{The starting point for drawing. Must be larger than minimum x value and smaller than maximum x value. If null is provided will use minimum x plus smallest possible positive number such that x min != sum. Only provide if free_draw != TRUE. (default: NULL).}
 
 \item{points_end}{The ending x-value for the points. Will only affect the graph if points are "partial" (default: NULL).}
 
 \item{x_by}{The offset applied to rectangle in relation to current progress. (default: 0)}
 
-\item{free_draw}{Whether to allow freehand drawing (default: T).}
+\item{free_draw}{Whether to allow freehand drawing for entire graph. If false, begin drawing at draw_start. (default: T).}
 
 \item{points}{The type of points to be displayed. Choices: "full" or "partial". Full will always display all points, while for partial the user can choose not to include points. (default: "full").}
 
@@ -68,6 +69,8 @@ drawr(
 \item{y_axis_buffer}{The buffer for the y-axis added to the y range, calculated as a percent of y range. Only used if y_range is NULL, and must be greater than or equal to 0. (default: 0.05)}
 
 \item{show_finished}{Whether to show the finished plot (default: TRUE).}
+
+\item{show_tooltip}{Whether to display tooltips or not. (default: FALSE)}
 
 \item{shiny_message_loc}{The location to display the shiny message. (default = NULL)}
 }
@@ -103,12 +106,23 @@ print(drawr(data           = data,
             x_lab          = "x-axis",
             y_lab          = "y-axis",
             x_axis_buffer  = 0,
-            y_axis_buffer  = 1))
+            y_axis_buffer  = 1,
+            show_tooltip   = T))
             
 # Example 3: Using a non-linear scale
 df <- data.frame(Time = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
 df$Cost <- exp(df$Time)
 data <- customDataGen(df = df, log_y = TRUE, log_base = 2)
 print(drawr(data, linear = "no", log_base = 2))
+
+# Example 4: Start drawing in the middle and include tooltips
+df <- data.frame(
+  Time = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
+  Cost = c(1, 4, 9, 16, 18, 16, 9, 4, 2, 1)
+)
+
+data <- df |>  customDataGen()
+
+print(drawr(data, free_draw = F, draw_start = 5))
 
 }

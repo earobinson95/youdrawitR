@@ -8,10 +8,10 @@
 #' @param data The data containing line data (with equation info) and point data.
 #' @param linear Choice of a linear or log y-scale, true = linear, else = log. If using log scale choose log_y = TRUE in \code{customDataGen()} function when generating data. (default: "true").
 #' @param log_base The base of the log scale, only affects graph if not linear is not "true". If NULL will use natrual logarithm. Log_base should match log_base choice in \code{customDataGen()} function (default = NULL)
-#' @param draw_start The starting point for drawing. Must be larger than minimum x value and smaller than maximum x value. If null is provided will use minimum x plus smallest possible positive number such that x min != sum. (default: NULL).
+#' @param draw_start The starting point for drawing. Must be larger than minimum x value and smaller than maximum x value. If null is provided will use minimum x plus smallest possible positive number such that x min != sum. Only provide if free_draw != TRUE. (default: NULL).
 #' @param points_end The ending x-value for the points. Will only affect the graph if points are "partial" (default: NULL).
 #' @param x_by The offset applied to rectangle in relation to current progress. (default: 0)
-#' @param free_draw Whether to allow freehand drawing (default: T).
+#' @param free_draw Whether to allow freehand drawing for entire graph. If false, begin drawing at draw_start. (default: T).
 #' @param points The type of points to be displayed. Choices: "full" or "partial". Full will always display all points, while for partial the user can choose not to include points. (default: "full").
 #' @param aspect_ratio The aspect ratio of the plot (default: 1).
 #' @param title The title of the plot. (default: "")
@@ -25,6 +25,7 @@
 #' @param x_axis_buffer The buffer for the x-axis added to the x range, calculated as a percent of x range. Only used if x_range is NULL, and must be greater than or equal to 0. (default: 0)
 #' @param y_axis_buffer The buffer for the y-axis added to the y range, calculated as a percent of y range. Only used if y_range is NULL, and must be greater than or equal to 0. (default: 0.05)
 #' @param show_finished Whether to show the finished plot (default: TRUE).
+#' @param show_tooltip Whether to display tooltips or not. (default: FALSE)
 #' @param shiny_message_loc The location to display the shiny message. (default = NULL)
 #' 
 #' @examples
@@ -50,13 +51,24 @@
 #'             x_lab          = "x-axis",
 #'             y_lab          = "y-axis",
 #'             x_axis_buffer  = 0,
-#'             y_axis_buffer  = 1))
+#'             y_axis_buffer  = 1,
+#'             show_tooltip   = T))
 #'             
 #' # Example 3: Using a non-linear scale
 #' df <- data.frame(Time = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
 #' df$Cost <- exp(df$Time)
 #' data <- customDataGen(df = df, log_y = TRUE, log_base = 2)
 #' print(drawr(data, linear = "no", log_base = 2))
+#' 
+#' # Example 4: Start drawing in the middle and include tooltips
+#' df <- data.frame(
+#'   Time = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
+#'   Cost = c(1, 4, 9, 16, 18, 16, 9, 4, 2, 1)
+#' )
+#' 
+#' data <- df |>  customDataGen()
+#' 
+#' print(drawr(data, free_draw = F, draw_start = 5))
 #' 
 #' @return The rendered interactive you-draw-it plot. The plot is displayed
 #' automatically when function is called if not assigned to a variable for further use.
@@ -84,6 +96,7 @@ drawr <- function(data,
                   x_axis_buffer     = 0, 
                   y_axis_buffer     = 0.05,
                   show_finished     = T,
+                  show_tooltip      = F,
                   shiny_message_loc = NULL) {
   if (x_axis_buffer < 0) {
     stop("Error: x_axis_buffer must be greater than or equal to 0")
@@ -199,7 +212,7 @@ drawr <- function(data,
                      auto_unbox = FALSE, 
                      rownames = TRUE)
   } 
-  
+
   return(r2d3(data   = data_to_json(data), 
              script = system.file("www/you-draw-it.js", package = "youdrawitR"),
              d3_version = "5",
@@ -222,6 +235,7 @@ drawr <- function(data,
                             data_tab1_color   = data_tab1_color, 
                             drawn_line_color  = drawn_line_color,
                             show_finished     = show_finished,
+                            show_tooltip      = show_tooltip,
                             shiny_message_loc = shiny_message_loc,
                             title             = title)
   ))

@@ -1,4 +1,4 @@
-// !preview r2d3 data = data_to_json(data), options = list(free_draw = TRUE, draw_start = 1, points_end = 20, pin_start = TRUE, x_range = NULL, subtitle = "Subtitle Test", y_range = NULL, line_style = list(strokeWidth = 4), data_line_color = 'steelblue', drawn_line_color = 'steelblue', show_finished = TRUE, shiny_message_loc = NULL, linear = 'true', title = "Test", x_lab = "x axis test", y_lab = "y axis test", points = "full", aspect_ratio = 1, x_by = 0.25, log_base = 10), dependencies = c('d3-jetpack'), d3_version = "5", view= "browser"
+// !preview r2d3 data = data_to_json(data), options = list(free_draw = TRUE, draw_start = 1, points_end = 20, pin_start = TRUE, x_range = NULL, subtitle = "Subtitle Test", y_range = NULL, line_style = list(strokeWidth = 4), data_line_color = 'steelblue', drawn_line_color = 'steelblue', show_finished = TRUE, shiny_message_loc = NULL, linear = 'true', title = "Test", x_lab = "x axis test", y_lab = "y axis test", points = "full", aspect_ratio = 1, x_by = 0, log_base = 10, show_tooltip = TRUE), dependencies = c('d3-jetpack'), d3_version = "5"
 
 // Make sure R has the following loaded
 // library(tibble)
@@ -370,10 +370,22 @@ function draw_points({svg, point_data, points_end, points}, scales){
 }
 
 
+if (state.show_tooltip) {
+  // Define the tooltip element
+  var tooltip = d3.select("body").append("div")
+  .attr("class", "tooltip")
+  .style("position", "absolute")
+  .style("opacity", 0)
+  .style("padding", "6px")
+  .style("background-color", "#fff")
+  .style("color", "#333")
+  .style("border", "1px solid #ccc")
+  .style("border-radius", "4px")
+  .style("font-size", "14px")
+  .style("pointer-events", "none");
+}
 
 function draw_rectangle({svg, drawable_points, line_data, draw_start, width, height, free_draw, x_by}, scales){
-
-
     if(get_user_line_status(state) === 'unstarted'){
       if(free_draw){
          var xmin = line_data[0].x
@@ -408,28 +420,31 @@ function draw_rectangle({svg, drawable_points, line_data, draw_start, width, hei
       //.style("fill", "#e0f3f3")
       .style("fill-opacity", 0.4)
       .style("fill", "rgba(255,255,0,.8)")
-      
-      
-      // Define the tooltip element
-    var tooltip = d3.select("body").append("div")
-      .attr("class", "tooltip")
-      .style("position", "absolute")
-      .style("opacity", 0);
-          
-        // Track the mouse position
+        
+  if (state.show_tooltip) {
     svg.on("mousemove", function(d) {
       // Get the mouse coordinates relative to the SVG container
       var [mouseX, mouseY] = d3.mouse(this);
-    
-      // Check if the mouse is over the draw_region element
-      var isMouseOverDrawRegion = isMouseOverElement(draw_region, mouseX, mouseY);
-    
+  
+      // Check if the mouse is within the rectangle's bounds
+      var isMouseOverDrawRegion =
+        mouseX >= drawSpace_start &&
+        mouseX <= drawSpace_end &&
+        mouseY >= 0 &&
+        mouseY <= state.h;
+  
       if (isMouseOverDrawRegion) {
+        // Calculate the progress based on the width of draw_region relative to the total width
+        var progress = (1 - (drawSpace_end - drawSpace_start) / (drawSpace_end - draw_start));
+        
+        // Set the progress to a minimum of 0 if it is negative
+        progress = Math.max(progress, 0);
+        
         // Show tooltip
         tooltip.transition()
           .duration(200)
           .style("opacity", 1);
-        tooltip.html("Progress: <progress_percentage_here>")
+        tooltip.html("Progress: " + (progress * 100).toFixed(2) + "%")
           .style("left", (d3.event.pageX + 10) + "px")
           .style("top", (d3.event.pageY - 28) + "px");
       } else {
@@ -439,13 +454,14 @@ function draw_rectangle({svg, drawable_points, line_data, draw_start, width, hei
           .style("opacity", 0);
       }
     });
-}
-
-// Function to check if the mouse is over a given element
-function isMouseOverElement(element, mouseX, mouseY) {
-  var bbox = element.node().getBoundingClientRect();
-  return mouseX >= bbox.x && mouseX <= bbox.x + bbox.width &&
-         mouseY >= bbox.y && mouseY <= bbox.y + bbox.height;
+    
+    // Hide tooltip when mouse leaves the SVG container
+    svg.on("mouseleave", function() {
+      tooltip.transition()
+        .duration(200)
+        .style("opacity", 0);
+    });
+  }
 }
 
 function draw_user_line(state, scales){
