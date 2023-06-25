@@ -1,4 +1,4 @@
-// !preview r2d3 data = data_to_json(data), options = list(free_draw = TRUE, draw_start = 1, points_end = 20, pin_start = TRUE, x_range = NULL, subtitle = "Subtitle Test", y_range = NULL, line_style = list(strokeWidth = 4), data_line_color = 'steelblue', drawn_line_color = 'steelblue', show_finished = TRUE, shiny_message_loc = NULL, linear = 'true', title = "Test", x_lab = "x axis test", y_lab = "y axis test", points = "partial", aspect_ratio = 1, x_by = 0.25), dependencies = c('d3-jetpack'), d3_version = "5", 
+// !preview r2d3 data = data_to_json(data), options = list(free_draw = TRUE, draw_start = 1, points_end = 20, pin_start = TRUE, x_range = NULL, subtitle = "Subtitle Test", y_range = NULL, line_style = list(strokeWidth = 4), data_line_color = 'steelblue', drawn_line_color = 'steelblue', show_finished = TRUE, shiny_message_loc = NULL, linear = 'true', title = "Test", x_lab = "x axis test", y_lab = "y axis test", points = "full", aspect_ratio = 1, x_by = 0.25, log_base = 10), dependencies = c('d3-jetpack'), d3_version = "5", view= "browser"
 
 // Make sure R has the following loaded
 // library(tibble)
@@ -369,6 +369,8 @@ function draw_points({svg, point_data, points_end, points}, scales){
     
 }
 
+
+
 function draw_rectangle({svg, drawable_points, line_data, draw_start, width, height, free_draw, x_by}, scales){
 
 
@@ -406,7 +408,44 @@ function draw_rectangle({svg, drawable_points, line_data, draw_start, width, hei
       //.style("fill", "#e0f3f3")
       .style("fill-opacity", 0.4)
       .style("fill", "rgba(255,255,0,.8)")
-  
+      
+      
+      // Define the tooltip element
+    var tooltip = d3.select("body").append("div")
+      .attr("class", "tooltip")
+      .style("position", "absolute")
+      .style("opacity", 0);
+          
+        // Track the mouse position
+    svg.on("mousemove", function(d) {
+      // Get the mouse coordinates relative to the SVG container
+      var [mouseX, mouseY] = d3.mouse(this);
+    
+      // Check if the mouse is over the draw_region element
+      var isMouseOverDrawRegion = isMouseOverElement(draw_region, mouseX, mouseY);
+    
+      if (isMouseOverDrawRegion) {
+        // Show tooltip
+        tooltip.transition()
+          .duration(200)
+          .style("opacity", 1);
+        tooltip.html("Progress: <progress_percentage_here>")
+          .style("left", (d3.event.pageX + 10) + "px")
+          .style("top", (d3.event.pageY - 28) + "px");
+      } else {
+        // Hide tooltip
+        tooltip.transition()
+          .duration(200)
+          .style("opacity", 0);
+      }
+    });
+}
+
+// Function to check if the mouse is over a given element
+function isMouseOverElement(element, mouseX, mouseY) {
+  var bbox = element.node().getBoundingClientRect();
+  return mouseX >= bbox.x && mouseX <= bbox.x + bbox.width &&
+         mouseY >= bbox.y && mouseY <= bbox.y + bbox.height;
 }
 
 function draw_user_line(state, scales){
@@ -517,9 +556,16 @@ function setup_scales(state){
   } else {
     //console.log('in log block');
     // converts from data log scale to pixle scale
-    var y = d3.scaleLog()
-    .domain(y_range || d3.extent(line_data, d => d.y))
-    .range([h, 0]).base(10);
+    if (state.log_base == null) {
+      var y = d3.scaleLog()
+      .domain(y_range || d3.extent(line_data, d => d.y))
+      .range([h, 0]).base(Math.E);
+    }
+    else {
+      var y = d3.scaleLog()
+      .domain(y_range || d3.extent(line_data, d => d.y))
+      .range([h, 0]).base(state.log_base);
+    }
   }
   
   const xAxis = d3.axisBottom().scale(x).tickSizeOuter(0);

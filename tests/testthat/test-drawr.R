@@ -12,18 +12,44 @@ test_that("error should be thrown if draw_start is out outside of x_range", {
                      draw_start = -Inf), "Draw start is out of data range.")
 })
 
-test_that("an error should be thrown when supplied y range doesn't cover data fully.",{
+test_that("an error should be thrown when supplied y range doesn't include 2 points from point_data.",{
   line_data <- data.frame(x = c(1:10), y = runif(10))
   line_data$coef <- rep(2.5, length(line_data$x))
   line_data$int <- rep(2.5, length(line_data$x))
   point_data <- data.frame(x = c(1, 2, 5 ,8, 10), y = runif(5))
-  y_range = range(point_data$y) + c(1, -1)
 
   expect_error(drawr(data=list(line_data=line_data,
                                point_data=point_data),
                      draw_start = 2,
-                     y_range = y_range),
-               "Supplied y range doesn't cover data fully.")
+                     y_range = c(1, 2)),
+               "Error: The provided y_range does not include at least two points from point_data.")
+})
+
+
+test_that("an error should be thrown when supplied y range/x_range is not of length of 2 and not null.",{
+  line_data <- data.frame(x = c(1:10), y = runif(10))
+  line_data$coef <- rep(2.5, length(line_data$x))
+  line_data$int <- rep(2.5, length(line_data$x))
+  point_data <- data.frame(x = c(1, 2, 5 ,8, 10), y = runif(5))
+  
+  expect_error(drawr(data=list(line_data=line_data,
+                               point_data=point_data),
+                     draw_start = 2,
+                     x_range = c(0)),
+               "Error: Please supply min and max x values for x_range")
+})
+
+test_that("a warning should be thrown if y_range doesn't fully cover data",{
+  line_data <- data.frame(x = c(1:10), y = runif(10))
+  line_data$coef <- rep(2.5, length(line_data$x))
+  line_data$int <- rep(2.5, length(line_data$x))
+  point_data <- data.frame(x = c(1, 2, 5 ,8, 10), y = c(1, 2, 3, 4, 5))
+
+  expect_warning(drawr(data=list(line_data=line_data,
+                                 point_data=point_data),
+                       draw_start = 2,
+                       y_range = c(2, 4)),
+                 "The provided y_range does not cover data, the line will still be fitted from entire dataset.")
 })
 
 test_that("data is correct in output.",{
@@ -42,7 +68,7 @@ test_that("data is correct in output.",{
                '{"line_data":[{"x":0,"y":0,"coef":2.5,"int":2.5,"_row":1},{"x":2,"y":2,"coef":2.5,"int":2.5,"_row":2}],"point_data":[{"x":0,"y":0,"_row":1},{"x":2,"y":2,"_row":2}]}')
 })
 
-test_that("data is correct in output if x_max of range is not equal",{
+test_that("data is correct in output if max(range) is larger than actual",{
   line_data <- data.frame(x = c(0,2), y = c(0,2))
   point_data <- data.frame(x = c(0,2), y = c(0,2))
   line_data$coef <- rep(2.5, length(line_data$x))
@@ -55,7 +81,7 @@ test_that("data is correct in output if x_max of range is not equal",{
                '{"line_data":[{"x":0,"y":0,"_row":1},{"x":2,"y":2,"_row":2},{"x":3,"y":10,"_row":3}],"point_data":[{"x":0,"y":0,"_row":1},{"x":2,"y":2,"_row":2}]}')
 })
 
-test_that("data is correct in output if x_min of range is not equal",{
+test_that("data is correct in output if min(x_range) is smaller than actual",{
   line_data <- data.frame(x = c(0,2), y = c(0,2))
   point_data <- data.frame(x = c(0,2), y = c(0,2))
   line_data$coef <- rep(2.5, length(line_data$x))
@@ -68,7 +94,7 @@ test_that("data is correct in output if x_min of range is not equal",{
                '{"line_data":[{"x":-1,"y":0,"_row":1},{"x":0,"y":0,"_row":2},{"x":2,"y":2,"_row":3}],"point_data":[{"x":0,"y":0,"_row":1},{"x":2,"y":2,"_row":2}]}')
 })
 
-test_that("data is correct in output if all of range is not equal",{
+test_that("data is correct in output if min(x_range) is smaller and max(x_range) is larger ",{
   line_data <- data.frame(x = c(0,2), y = c(0,2))
   point_data <- data.frame(x = c(0,2), y = c(0,2))
   line_data$coef <- rep(2.5, length(line_data$x))
@@ -81,6 +107,71 @@ test_that("data is correct in output if all of range is not equal",{
                '{"line_data":[{"x":-1,"y":0,"_row":1},{"x":0,"y":0,"_row":2},{"x":2,"y":2,"_row":3},{"x":3,"y":10,"_row":4}],"point_data":[{"x":0,"y":0,"_row":1},{"x":2,"y":2,"_row":2}]}')
 })
 
+test_that("data is correct in output if min(x_range) is larger and max(x_range) is smaller",{
+  line_data <- data.frame(x = c(-1, 0, 2, 4), y = c(-1, 0, 2, 4))
+  point_data <- data.frame(x = c(-1, 0, 2, 4), y = c(-1, 0, 2, 4))
+  line_data$coef <- rep(2.5, length(line_data$x))
+  line_data$int <- rep(2.5, length(line_data$x))
+  
+  out <- suppressWarnings(drawr(data=list(line_data=line_data,
+                         point_data=point_data),
+               x_range = c(0, 2)))
+  expect_equal(toString(out$x$data), 
+               '{"line_data":[{"x":0,"y":0,"coef":2.5,"int":2.5,"_row":2},{"x":2,"y":2,"coef":2.5,"int":2.5,"_row":3}],"point_data":[{"x":0,"y":0,"_row":2},{"x":2,"y":2,"_row":3}]}')
+})
+
+test_that("data is correct in output if min(x_range) is larger and y_range is smaller",{
+  line_data <- data.frame(x = c(-1, 0, 2, 4), y = c(-1, 0, 2, 4))
+  point_data <- data.frame(x = c(-1, 0, 2, 4), y = c(-1, 0, 2, 4))
+  line_data$coef <- rep(2.5, length(line_data$x))
+  line_data$int <- rep(2.5, length(line_data$x))
+  
+  out <- suppressWarnings(drawr(data=list(line_data=line_data,
+                                          point_data=point_data),
+                                x_range = c(0, 4),
+                                y_range = c(0, 2)))
+  expect_equal(toString(out$x$data), 
+               '{"line_data":[{"x":0,"y":0,"coef":2.5,"int":2.5,"_row":2},{"x":2,"y":2,"coef":2.5,"int":2.5,"_row":3},{"x":4,"y":4,"coef":2.5,"int":2.5,"_row":4}],"point_data":[{"x":0,"y":0,"_row":2},{"x":2,"y":2,"_row":3}]}')
+})
+
+test_that("data is correct in output if only min(x_range) is larger",{
+  line_data <- data.frame(x = c(-1, 0, 2), y = c(-1, 0, 2))
+  point_data <- data.frame(x = c(-1, 0, 2), y = c(-1, 0, 2))
+  line_data$coef <- rep(2.5, length(line_data$x))
+  line_data$int <- rep(2.5, length(line_data$x))
+  
+  out <- suppressWarnings(drawr(data=list(line_data=line_data,
+                         point_data=point_data),
+               x_range = c(0, 2)))
+  expect_equal(toString(out$x$data), 
+               '{"line_data":[{"x":0,"y":0,"coef":2.5,"int":2.5,"_row":2},{"x":2,"y":2,"coef":2.5,"int":2.5,"_row":3}],"point_data":[{"x":0,"y":0,"_row":2},{"x":2,"y":2,"_row":3}]}')
+})
+
+test_that("data is correct in output if max(x_range) is smaller and min(x_range) is smaller",{
+  line_data <- data.frame(x = c(0, 2, 4), y = c(0, 2, 4))
+  point_data <- data.frame(x = c(0, 2, 4), y = c(0, 2, 4))
+  line_data$coef <- rep(2.5, length(line_data$x))
+  line_data$int <- rep(2.5, length(line_data$x))
+  
+  out <- suppressWarnings(drawr(data=list(line_data=line_data,
+                         point_data=point_data),
+               x_range = c(-1, 2)))
+  expect_equal(toString(out$x$data), 
+               '{"line_data":[{"x":-1,"y":0,"_row":1},{"x":0,"y":0,"_row":2},{"x":2,"y":2,"_row":3}],"point_data":[{"x":0,"y":0,"_row":1},{"x":2,"y":2,"_row":2}]}')
+})
+
+test_that("data is correct in output if min(x_range) is larger and max(x_range) is larger",{
+  line_data <- data.frame(x = c(-1, 0, 2), y = c(-1, 0, 2))
+  point_data <- data.frame(x = c(-1, 0, 2), y = c(-1, 0, 2))
+  line_data$coef <- rep(2.5, length(line_data$x))
+  line_data$int <- rep(2.5, length(line_data$x))
+  
+  out <- suppressWarnings(drawr(data=list(line_data=line_data,
+                         point_data=point_data),
+               x_range = c(0, 3)))
+  expect_equal(toString(out$x$data), 
+               '{"line_data":[{"x":0,"y":0,"_row":1},{"x":2,"y":2,"_row":2},{"x":3,"y":10,"_row":3}],"point_data":[{"x":0,"y":0,"_row":2},{"x":2,"y":2,"_row":3}]}')
+})
 
 test_that("x and y ranges are calculated correctly if NULL. (and x and y buffer is 0)",{
   x <- sample(0:10, 2)
