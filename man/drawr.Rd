@@ -7,9 +7,10 @@
 drawr(
   data,
   linear = "true",
+  log_base = NULL,
   draw_start = NULL,
   points_end = NULL,
-  x_by = 0.25,
+  x_by = 0,
   free_draw = T,
   points = "full",
   aspect_ratio = 1,
@@ -30,13 +31,15 @@ drawr(
 \arguments{
 \item{data}{The data containing line data (with equation info) and point data.}
 
-\item{linear}{Whether the data represents a linear relationship (default: "true").}
+\item{linear}{Choice of a linear or log y-scale, true = linear, else = log. If using log scale choose log_y = TRUE in \code{customDataGen()} function when generating data. (default: "true").}
+
+\item{log_base}{The base of the log scale, only affects graph if not linear is not "true". If NULL will use natrual logarithm. Log_base should match log_base choice in \code{customDataGen()} function (default = NULL)}
 
 \item{draw_start}{The starting point for drawing. Must be larger than minimum x value and smaller than maximum x value. If null is provided will use minimum x plus smallest possible positive number such that x min != sum. (default: NULL).}
 
 \item{points_end}{The ending x-value for the points. Will only affect the graph if points are "partial" (default: NULL).}
 
-\item{x_by}{The increment value for x. (default: 0.25)}
+\item{x_by}{The offset applied to rectangle in relation to current progress. (default: 0)}
 
 \item{free_draw}{Whether to allow freehand drawing (default: T).}
 
@@ -95,10 +98,17 @@ data <- customDataGen(df, "Time", "Cost")
 print(drawr(data           = data,
             aspect_ratio   = 0.85,
             title          = "Title",
+            x_range        = c(0, 15),
             subtitle       = "Subtitle",
             x_lab          = "x-axis",
             y_lab          = "y-axis",
             x_axis_buffer  = 0,
             y_axis_buffer  = 1))
+            
+# Example 3: Using a non-linear scale
+df <- data.frame(Time = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
+df$Cost <- exp(df$Time)
+data <- customDataGen(df = df, log_y = TRUE, log_base = 2)
+print(drawr(data, linear = "no", log_base = 2))
 
 }

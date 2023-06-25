@@ -6,10 +6,11 @@
 #'
 #'
 #' @param data The data containing line data (with equation info) and point data.
-#' @param linear Whether the data represents a linear relationship (default: "true").
+#' @param linear Choice of a linear or log y-scale, true = linear, else = log. If using log scale choose log_y = TRUE in \code{customDataGen()} function when generating data. (default: "true").
+#' @param log_base The base of the log scale, only affects graph if not linear is not "true". If NULL will use natrual logarithm. Log_base should match log_base choice in \code{customDataGen()} function (default = NULL)
 #' @param draw_start The starting point for drawing. Must be larger than minimum x value and smaller than maximum x value. If null is provided will use minimum x plus smallest possible positive number such that x min != sum. (default: NULL).
 #' @param points_end The ending x-value for the points. Will only affect the graph if points are "partial" (default: NULL).
-#' @param x_by The increment value for x. (default: 0.25)
+#' @param x_by The offset applied to rectangle in relation to current progress. (default: 0)
 #' @param free_draw Whether to allow freehand drawing (default: T).
 #' @param points The type of points to be displayed. Choices: "full" or "partial". Full will always display all points, while for partial the user can choose not to include points. (default: "full").
 #' @param aspect_ratio The aspect ratio of the plot (default: 1).
@@ -44,11 +45,18 @@
 #' print(drawr(data           = data,
 #'             aspect_ratio   = 0.85,
 #'             title          = "Title",
+#'             x_range        = c(0, 15),
 #'             subtitle       = "Subtitle",
 #'             x_lab          = "x-axis",
 #'             y_lab          = "y-axis",
 #'             x_axis_buffer  = 0,
 #'             y_axis_buffer  = 1))
+#'             
+#' # Example 3: Using a non-linear scale
+#' df <- data.frame(Time = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
+#' df$Cost <- exp(df$Time)
+#' data <- customDataGen(df = df, log_y = TRUE, log_base = 2)
+#' print(drawr(data, linear = "no", log_base = 2))
 #' 
 #' @return The rendered interactive you-draw-it plot. The plot is displayed
 #' automatically when function is called if not assigned to a variable for further use.
@@ -58,9 +66,10 @@
 #' @importFrom jsonlite toJSON
 drawr <- function(data, 
                   linear            = "true", 
+                  log_base          = NULL,
                   draw_start        = NULL,
                   points_end        = NULL,
-                  x_by              = 0.25,
+                  x_by              = 0,
                   free_draw         = T,
                   points            = "full",
                   aspect_ratio      = 1,
@@ -89,8 +98,8 @@ drawr <- function(data,
 
   x_min <- min(line_data$x)
   x_max <- max(line_data$x)
-  y_min <- min(line_data$y)
-  y_max <- max(line_data$y)
+  y_min <- min(c(min(line_data$y), min(point_data$y)))
+  y_max <- max(c(max(line_data$y), max(point_data$y)))
   
   if (is.null(x_range)) {
     x_buffer <- (x_max - x_min) * x_axis_buffer
@@ -116,7 +125,7 @@ drawr <- function(data,
     if (length(y_range) != 2) {
       stop("Error: Please supply min and max y values for y_range")
     }
-    if (sum(point_data$y >= y_range[1]) < 2 || sum(point_data$x <= y_range[2]) < 2) {
+    if (sum(point_data$y >= y_range[1]) < 2 || sum(point_data$y <= y_range[2]) < 2) {
       stop("Error: The provided y_range does not include at least two points from point_data.")
     }
     if (y_range[1] > y_min | y_range[2] < y_max) {
@@ -162,8 +171,18 @@ drawr <- function(data,
     }
   }
   
+  if (linear != "true") {
+    if (is.null(log_base)) {
+      line_data$y <- exp(line_data$y)
+    }
+    else {
+      line_data$y <- log_base ^ line_data$y
+    }
+  }
+  
   data$line_data <- line_data
   data$point_data <- point_data
+  
   # If draw_start is NULL calculate lowest possible draw_start such that draw_start != x_min
   if (is.null(draw_start)) {
     draw_start <- x_min + max(.Machine$double.eps * abs(x_min), .Machine$double.xmin)
@@ -188,6 +207,7 @@ drawr <- function(data,
              options = list(draw_start        = draw_start, 
                             points_end        = points_end,
                             linear            = as.character(linear),
+                            log_base          = log_base,
                             free_draw         = free_draw, 
                             points            = points,
                             aspect_ratio      = aspect_ratio,
