@@ -12,13 +12,14 @@
 #' @param x_min The minimum x value. (default: 0)
 #' @param x_max The maximum x value. (default: 20)
 #' @param x_by The increment value for x. (default: 0.25)
+#' @param conf_int If a 95\% confidence interval should be generated for \code{drawr()} function. (default: FALSE)
 #' 
 #' @return A list containing the generated point data and line data (with equation info).
 #' @export
 #' 
 #' @importFrom tibble tibble
 #' @importFrom dplyr %>% arrange
-#' @importFrom stats coef lm rnorm
+#' @importFrom stats coef lm rnorm predict
 linearDataGen <- 
   function(y_xbar, 
            slope, 
@@ -28,7 +29,8 @@ linearDataGen <-
            N = 30,
            x_min = 0,
            x_max = 20,
-           x_by  = 0.25){
+           x_by  = 0.25,
+           conf_int = F){
     
     points_end_scale <- ifelse(points_choice == "full", 1, points_end_scale)
     
@@ -50,15 +52,30 @@ linearDataGen <-
     
     # Obtain least squares regression coefficients
     lm.fit <- lm(y ~ x, data = point_data)
-    yintercepthat <- coef(lm.fit)[1] %>% as.numeric()
-    slopehat <- coef(lm.fit)[2] %>% as.numeric()
-    
-    # Simulate best fit line data
-    line_data <- tibble(data = "line_data", 
-                        x = seq(x_min, x_max, x_by), 
-                        y = yintercepthat + slopehat*x,
-                        coef = coef(lm.fit)["x"] |> as.numeric(),
-                        int = coef(lm.fit)["(Intercept)"] |> as.numeric())
+    if (conf_int) {
+      predict_data <- data.frame(x)
+      predict_data$y <- predict(lm.fit, newdata = predict_data, interval = "confidence")
+      
+      # Create line data with x and y values
+      line_data <- tibble(data = "line_data",
+                          x = x,
+                          y = predict_data$y[, "fit"],
+                          coef = coef(lm.fit)["x"] |> as.numeric(),
+                          int = coef(lm.fit)["(Intercept)"] |> as.numeric(),
+                          lower_bound = predict_data$y[, "lwr"],
+                          upper_bound = predict_data$y[, "upr"])
+    }
+    else {
+      yintercepthat <- coef(lm.fit)[1] %>% as.numeric()
+      slopehat <- coef(lm.fit)[2] %>% as.numeric()
+      
+      # Simulate best fit line data
+      line_data <- tibble(data = "line_data", 
+                          x = seq(x_min, x_max, x_by), 
+                          y = yintercepthat + slopehat*x,
+                          coef = coef(lm.fit)["x"] |> as.numeric(),
+                          int = coef(lm.fit)["(Intercept)"] |> as.numeric())
+    }
     
     data <- list(point_data = point_data, line_data = line_data)
     

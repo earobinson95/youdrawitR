@@ -1,4 +1,4 @@
-// !preview r2d3 data = data_to_json(data), options = list(free_draw = TRUE, draw_start = 1, points_end = 20, pin_start = TRUE, x_range = NULL, subtitle = "Subtitle Test", y_range = NULL, line_style = list(strokeWidth = 4), data_line_color = 'steelblue', drawn_line_color = 'steelblue', show_finished = TRUE, shiny_message_loc = NULL, linear = 'true', title = "Test", x_lab = "x axis test", y_lab = "y axis test", points = "full", aspect_ratio = 1, x_by = 0, log_base = 10, show_tooltip = TRUE), dependencies = c('d3-jetpack'), d3_version = "5", viewer = "browser"
+// !preview r2d3 data = data, options = list(free_draw = TRUE, draw_start = 1, points_end = 20, pin_start = TRUE, x_range = NULL, subtitle = "Subtitle Test", y_range = NULL, line_style = list(strokeWidth = 4), data_line_color = 'steelblue', drawn_line_color = 'steelblue', show_finished = TRUE, shiny_message_loc = NULL, linear = 'true', title = "Test", x_lab = "x axis test", y_lab = "y axis test", points = "full", aspect_ratio = 1, x_by = 0, log_base = 10, show_tooltip = TRUE, conf_int = TRUE), dependencies = c('d3-jetpack'), d3_version = "5", viewer = "browser"
 
 // Make sure R has the following loaded
 // library(tibble)
@@ -35,6 +35,15 @@ const default_line_attrs = Object.assign({
   strokeLinecap: "round",
 }, options.line_style);
 
+const conf_int_line_attrs = Object.assign({
+  fill: "none",
+  stroke: options.data_line_color || 'steelblue',
+  strokeWidth: 2,
+  strokeLinejoin: "round",
+  strokeLinecap: "round",
+  strokeDasharray: "10, 20"
+}, options.line_style);
+
 // defines a changing variable called state??
 // provides the data from top
 // appends the svg group and moves it to the correct location...
@@ -45,6 +54,8 @@ const default_line_attrs = Object.assign({
 let state = Object.assign({
   line_data: data.line_data,
   point_data: data.point_data,
+  lower_bound: data.lower_bound,
+  upper_bound: data.upper_bound,
   svg: svg.append('g').translate([margin.left, margin.top]).attr("class", "wrapper"),
   w: height*options.aspect_ratio - margin.left - margin.right,
   h: height - margin.top - margin.bottom,
@@ -61,8 +72,11 @@ r2d3.onRender(function(data, svg, width, height, options) {
   
   state.line_data = data.line_data;
   state.point_data = data.point_data;
-  
   state = Object.assign(state, options);
+  if (state.conf_int) {
+    state.lower_bound = data.lower_bound;
+    state.upper_bound = data.upper_bound;
+  }
   state.options = options;
   state.w = height*options.aspect_ratio;
 
@@ -459,7 +473,7 @@ function draw_rectangle({svg, drawable_points, line_data, draw_start, width, hei
   
       if (isMouseOverDrawRegion) {
         // Calculate the progress based on the width of draw_region relative to the total width
-        var progress = (1 - (drawSpace_end - drawSpace_start) / (drawSpace_end - draw_start));
+        var progress = (1 - (drawSpace_end - drawSpace_start) / (drawSpace_end));
         
         // Set the progress to a minimum of 0 if it is negative
         progress = Math.max(progress, 0);
@@ -513,15 +527,30 @@ function draw_finished_line({svg, line_data, draw_start, free_draw}, scales){
   
   if(!free_draw){
     var df = line_data.filter(function(d){ return d.x >= draw_start})
+    if (state.conf_int) {
+      var lwr = state.lower_bound.filter(function(d){ return d.x >= draw_start})
+      var upr = state.upper_bound.filter(function(d){ return d.x >= draw_start})
+    }
   } else {
     var df = line_data
+    if (state.conf_int) {
+      var lwr = state.lower_bound
+      var upr = state.upper_bound
+    }
   }
   
+  
   const finished_line = state.svg.selectAppend("path.finished_line")
+  const lower_bound = state.svg.selectAppend("path.lower_bound")
+  const upper_bound = state.svg.selectAppend("path.upper_bound")
   
     // Only draw line if there's something to draw.
   if(get_user_line_status(state) === 'unstarted'){
     finished_line.remove();
+    if (state.conf_int) {
+      lower_bound.remove();
+      upper_bound.remove();
+    }
     return;
   }
   
@@ -530,6 +559,20 @@ function draw_finished_line({svg, line_data, draw_start, free_draw}, scales){
   .at(default_line_attrs)
   .attr("d", scales.line_drawer)
   .attr("opacity", 0.5)
+
+  if (state.conf_int) {
+    lower_bound
+    .datum(lwr)
+    .at(conf_int_line_attrs)
+    .attr("d", scales.line_drawer)
+    .attr("opacity", 0.5)
+    
+    upper_bound
+    .datum(upr)
+    .at(conf_int_line_attrs)
+    .attr("d", scales.line_drawer)
+    .attr("opacity", 0.5)
+  }
   
 }
 

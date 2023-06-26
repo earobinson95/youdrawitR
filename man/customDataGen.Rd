@@ -4,7 +4,14 @@
 \alias{customDataGen}
 \title{Custom Data Generator}
 \usage{
-customDataGen(df, xvar = NULL, yvar = NULL, log_y = F, log_base = NULL)
+customDataGen(
+  df,
+  xvar = NULL,
+  yvar = NULL,
+  log_y = F,
+  log_base = NULL,
+  conf_int = F
+)
 }
 \arguments{
 \item{df}{An R data frame containing the input data.}
@@ -16,6 +23,8 @@ customDataGen(df, xvar = NULL, yvar = NULL, log_y = F, log_base = NULL)
 \item{log_y}{Specify whether to apply a logarithmic transformation to y for the fitted line for when using a non-linear scale in the \code{drawr()} function. If TRUE, the fitted line is transformed as log(y) ~ x; if FALSE, the fitted line is not transformed. (default: FALSE)}
 
 \item{log_base}{Log base for log transformation, only applies if log_y is true. If NULL will apply a natural log transformation. Log_base should match log_base choice in \code{drawr()} function. (default: NULL)}
+
+\item{conf_int}{If a 95\% confidence interval should be generated for \code{drawr()} function. (default: FALSE)}
 }
 \value{
 A list containing the point data and line data (with equation info) processed from inputted data frame.

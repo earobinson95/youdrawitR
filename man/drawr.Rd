@@ -6,12 +6,13 @@
 \usage{
 drawr(
   data,
+  conf_int = FALSE,
   linear = "true",
   log_base = NULL,
   draw_start = NULL,
   points_end = NULL,
   x_by = 0,
-  free_draw = T,
+  free_draw = TRUE,
   points = "full",
   aspect_ratio = 1,
   title = "",
@@ -24,17 +25,19 @@ drawr(
   data_tab1_color = "steelblue",
   x_axis_buffer = 0,
   y_axis_buffer = 0.05,
-  show_finished = T,
-  show_tooltip = F,
+  show_finished = TRUE,
+  show_tooltip = FALSE,
   shiny_message_loc = NULL
 )
 }
 \arguments{
 \item{data}{The data containing line data (with equation info) and point data.}
 
+\item{conf_int}{Whether to generate a 95\% confidence interval for the fitted line. Must select conf_int = TRUE in \code{linearDataGen()} or \code{customDataGen()} functions to generate interval. (default: FALSE)}
+
 \item{linear}{Choice of a linear or log y-scale, true = linear, else = log. If using log scale choose log_y = TRUE in \code{customDataGen()} function when generating data. (default: "true").}
 
-\item{log_base}{The base of the log scale, only affects graph if not linear is not "true". If NULL will use natrual logarithm. Log_base should match log_base choice in \code{customDataGen()} function (default = NULL)}
+\item{log_base}{The base of the log scale, only affects graph if not linear is not "true". If NULL will use natural logarithm. Log_base should match log_base choice in \code{customDataGen()} function (default = NULL)}
 
 \item{draw_start}{The starting point for drawing. Must be larger than minimum x value and smaller than maximum x value. If null is provided will use minimum x plus smallest possible positive number such that x min != sum. Only provide if free_draw != TRUE. (default: NULL).}
 
@@ -107,7 +110,7 @@ print(drawr(data           = data,
             y_lab          = "y-axis",
             x_axis_buffer  = 0,
             y_axis_buffer  = 1,
-            show_tooltip   = T))
+            show_tooltip   = TRUE))
             
 # Example 3: Using a non-linear scale
 df <- data.frame(Time = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
@@ -123,6 +126,6 @@ df <- data.frame(
 
 data <- df |>  customDataGen()
 
-print(drawr(data, free_draw = F, draw_start = 5))
+print(drawr(data, free_draw = FALSE, draw_start = 5))
 
 }

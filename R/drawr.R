@@ -6,8 +6,9 @@
 #'
 #'
 #' @param data The data containing line data (with equation info) and point data.
+#' @param conf_int Whether to generate a 95\% confidence interval for the fitted line. Must select conf_int = TRUE in \code{linearDataGen()} or \code{customDataGen()} functions to generate interval. (default: FALSE)
 #' @param linear Choice of a linear or log y-scale, true = linear, else = log. If using log scale choose log_y = TRUE in \code{customDataGen()} function when generating data. (default: "true").
-#' @param log_base The base of the log scale, only affects graph if not linear is not "true". If NULL will use natrual logarithm. Log_base should match log_base choice in \code{customDataGen()} function (default = NULL)
+#' @param log_base The base of the log scale, only affects graph if not linear is not "true". If NULL will use natural logarithm. Log_base should match log_base choice in \code{customDataGen()} function (default = NULL)
 #' @param draw_start The starting point for drawing. Must be larger than minimum x value and smaller than maximum x value. If null is provided will use minimum x plus smallest possible positive number such that x min != sum. Only provide if free_draw != TRUE. (default: NULL).
 #' @param points_end The ending x-value for the points. Will only affect the graph if points are "partial" (default: NULL).
 #' @param x_by The offset applied to rectangle in relation to current progress. (default: 0)
@@ -52,7 +53,7 @@
 #'             y_lab          = "y-axis",
 #'             x_axis_buffer  = 0,
 #'             y_axis_buffer  = 1,
-#'             show_tooltip   = T))
+#'             show_tooltip   = TRUE))
 #'             
 #' # Example 3: Using a non-linear scale
 #' df <- data.frame(Time = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
@@ -68,7 +69,7 @@
 #' 
 #' data <- df |>  customDataGen()
 #' 
-#' print(drawr(data, free_draw = F, draw_start = 5))
+#' print(drawr(data, free_draw = FALSE, draw_start = 5))
 #' 
 #' @return The rendered interactive you-draw-it plot. The plot is displayed
 #' automatically when function is called if not assigned to a variable for further use.
@@ -77,12 +78,13 @@
 #' @importFrom r2d3 r2d3
 #' @importFrom jsonlite toJSON
 drawr <- function(data, 
+                  conf_int          = FALSE,
                   linear            = "true", 
                   log_base          = NULL,
                   draw_start        = NULL,
                   points_end        = NULL,
                   x_by              = 0,
-                  free_draw         = T,
+                  free_draw         = TRUE,
                   points            = "full",
                   aspect_ratio      = 1,
                   title             = "", 
@@ -95,8 +97,8 @@ drawr <- function(data,
                   data_tab1_color   = "steelblue", 
                   x_axis_buffer     = 0, 
                   y_axis_buffer     = 0.05,
-                  show_finished     = T,
-                  show_tooltip      = F,
+                  show_finished     = TRUE,
+                  show_tooltip      = FALSE,
                   shiny_message_loc = NULL) {
   if (x_axis_buffer < 0) {
     stop("Error: x_axis_buffer must be greater than or equal to 0")
@@ -108,6 +110,12 @@ drawr <- function(data,
   
   line_data  <- data$line_data
   point_data <- data$point_data
+  if (conf_int) {
+    lower_bound <- tibble(x = line_data$x,
+                          y = line_data$lower_bound)
+    upper_bound <- tibble(x = line_data$x,
+                          y = line_data$upper_bound)
+  }
 
   x_min <- min(line_data$x)
   x_max <- max(line_data$x)
@@ -195,6 +203,10 @@ drawr <- function(data,
   
   data$line_data <- line_data
   data$point_data <- point_data
+  if (conf_int) {
+    data$lower_bound <- lower_bound
+    data$upper_bound <- upper_bound
+  }
   
   # If draw_start is NULL calculate lowest possible draw_start such that draw_start != x_min
   if (is.null(draw_start)) {
@@ -224,7 +236,7 @@ drawr <- function(data,
                             free_draw         = free_draw, 
                             points            = points,
                             aspect_ratio      = aspect_ratio,
-                            pin_start         = T, 
+                            pin_start         = TRUE, 
                             x_range           = x_range,
                             x_by              = x_by,
                             x_lab             = x_lab,
@@ -237,6 +249,7 @@ drawr <- function(data,
                             show_finished     = show_finished,
                             show_tooltip      = show_tooltip,
                             shiny_message_loc = shiny_message_loc,
-                            title             = title)
+                            title             = title,
+                            conf_int          = conf_int)
   ))
 }
