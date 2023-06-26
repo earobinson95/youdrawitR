@@ -1,4 +1,4 @@
-// !preview r2d3 data = data_to_json(data), options = list(free_draw = TRUE, draw_start = 1, points_end = 20, pin_start = TRUE, x_range = NULL, subtitle = "Subtitle Test", y_range = NULL, line_style = list(strokeWidth = 4), data_line_color = 'steelblue', drawn_line_color = 'steelblue', show_finished = TRUE, shiny_message_loc = NULL, linear = 'true', title = "Test", x_lab = "x axis test", y_lab = "y axis test", points = "full", aspect_ratio = 1, x_by = 0, log_base = 10, show_tooltip = TRUE), dependencies = c('d3-jetpack'), d3_version = "5"
+// !preview r2d3 data = data_to_json(data), options = list(free_draw = TRUE, draw_start = 1, points_end = 20, pin_start = TRUE, x_range = NULL, subtitle = "Subtitle Test", y_range = NULL, line_style = list(strokeWidth = 4), data_line_color = 'steelblue', drawn_line_color = 'steelblue', show_finished = TRUE, shiny_message_loc = NULL, linear = 'true', title = "Test", x_lab = "x axis test", y_lab = "y axis test", points = "full", aspect_ratio = 1, x_by = 0, log_base = 10, show_tooltip = TRUE), dependencies = c('d3-jetpack'), d3_version = "5", viewer = "browser"
 
 // Make sure R has the following loaded
 // library(tibble)
@@ -83,6 +83,28 @@ r2d3.onResize(function(width, height, options) {
 
 });
 
+function calculateDistance(user_line, line_data) {
+  let totalDistance = 0;
+  let pt_count = 0;
+
+  // Iterate over the points of user_line
+  for (let i = 0; i < user_line.length; i++) {
+    const point1 = user_line[i];
+    const correspondingPoint = line_data.find(point => point.x === point1.x);
+
+    if (correspondingPoint && correspondingPoint.y !== null) {
+      pt_count += 1
+      // Calculate the distance between the y-values of the two points
+      const distance = Math.abs(point1.y - correspondingPoint.y);
+      totalDistance += distance;
+    }
+  }
+  const averageDistance = totalDistance / pt_count;
+
+  return averageDistance;
+}
+
+// JSON.stringify()
 // Main function that draws current state of viz
 // set up scales & draw true line if we decide to do that.
 function start_drawer(state, reset = true){
@@ -139,6 +161,8 @@ function start_drawer(state, reset = true){
       if(state.show_finished){
         draw_finished_line(state, scales, state.draw_start);
       }
+      const distance = calculateDistance(svg.select("path.user_line").datum(), state.line_data).toFixed(4);
+      console.log('Average distance between the drawn line and actual line: '+ distance);
       
       if(state.shiny_message_loc){
         // Make sure shiny is available before sending message
