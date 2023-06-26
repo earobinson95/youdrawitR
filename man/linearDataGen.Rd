@@ -13,7 +13,8 @@ linearDataGen(
   N = 30,
   x_min = 0,
   x_max = 20,
-  x_by = 0.25
+  x_by = 0.25,
+  conf_int = F
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ linearDataGen(
 \item{x_max}{The maximum x value. (default: 20)}
 
 \item{x_by}{The increment value for x. (default: 0.25)}
+
+\item{conf_int}{If a 95\% confidence interval should be generated for \code{drawr()} function. (default: FALSE)}
 }
 \value{
 A list containing the generated point data and line data (with equation info).
