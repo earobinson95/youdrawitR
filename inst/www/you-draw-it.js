@@ -137,6 +137,44 @@ function start_drawer(state, reset = true){
     // multiassign where setup_drawable_points is grabbing the parameters it needs from state: data, freedraw and draw_start
     state.drawable_points = setup_drawable_points(state);
   }
+  d3.select("body")
+  .append("div")
+  .style("position", "relative")
+  .append("button")
+  .text("Reset")
+  .style("position", "absolute")
+  .style("top", `${margin.top}px`)
+  .style("left", `${state.w + margin.left + 10}px`)
+  .style("width", "80")
+  .style("height", "25")
+    .on("click", function() {
+    start_drawer(state, reset = true)
+  });
+  
+  
+  d3.select("body")
+    .append("div")
+    .style("position", "relative")
+    .append("button")
+    .text("Download Drawn Data")
+    .style("position", "absolute")
+    .style("bottom", `${-margin.bottom}px`)
+    .style("left", `${state.w + margin.left + 10}px`)
+    .style("width", "150")
+    .style("height", "25")
+    .on("click", function() {
+      var drawn_line = svg.select("path.user_line").datum();
+      
+      // Convert the completedLine to JSON
+      var jsonData = JSON.stringify(drawn_line);
+      
+      var bb = new Blob([jsonData ], { type: 'text/plain' });
+      var a = document.createElement('a');
+      a.download = 'draw_line_data.txt';
+      a.href = window.URL.createObjectURL(bb);
+      a.click();
+  });
+  
   
   // if we have points, we draw user's line.
   draw_user_line(state, scales);
@@ -177,6 +215,12 @@ function start_drawer(state, reset = true){
       }
       const distance = calculateDistance(svg.select("path.user_line").datum(), state.line_data).toFixed(4);
       console.log('Average distance between the drawn line and actual line: '+ distance);
+      
+      // Send the JSON data to R using an HTTP request
+      // var request = new XMLHttpRequest();
+    //  request.open("POST", "http://localhost:8000", true);
+  //    request.setRequestHeader("Content-Type", "application/json");
+//      request.send(jsonData);
       
       if(state.shiny_message_loc){
         // Make sure shiny is available before sending message
