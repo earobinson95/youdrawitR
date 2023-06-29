@@ -15,7 +15,8 @@ Imports:
     jsonlite,
     r2d3,
     stats,
-    tibble
+    tibble,
+    shiny
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3

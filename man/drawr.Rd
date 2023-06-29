@@ -6,6 +6,7 @@
 \usage{
 drawr(
   data,
+  run_app = FALSE,
   conf_int = FALSE,
   linear = "true",
   log_base = NULL,
@@ -26,12 +27,13 @@ drawr(
   x_axis_buffer = 0,
   y_axis_buffer = 0.05,
   show_finished = TRUE,
-  show_tooltip = FALSE,
-  shiny_message_loc = NULL
+  show_tooltip = FALSE
 )
 }
 \arguments{
 \item{data}{The data containing line data (with equation info) and point data.}
+
+\item{run_app}{Logical value indicating whether to run the Shiny app. (default: FALSE)}
 
 \item{conf_int}{Whether to generate a 95\% confidence interval for the fitted line. Must select conf_int = TRUE in \code{linearDataGen()} or \code{customDataGen()} functions to generate interval. (default: FALSE)}
 
@@ -74,8 +76,6 @@ drawr(
 \item{show_finished}{Whether to show the finished plot (default: TRUE).}
 
 \item{show_tooltip}{Whether to display tooltips or not. (default: FALSE)}
-
-\item{shiny_message_loc}{The location to display the shiny message. (default = NULL)}
 }
 \value{
 The rendered interactive you-draw-it plot. The plot is displayed
