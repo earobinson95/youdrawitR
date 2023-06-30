@@ -165,20 +165,60 @@ drawr <- function(data,
     # If given range larger than line range increase line size
     if (x_min > min_range || x_max < max_range) {
       if (x_min > min_range && x_max >= max_range) {
-        y_min <- line_data$coef[1] * min_range + line_data$int[1]
         x <- c(min_range, line_data$x)
-        y <- c(y_min, line_data$y)
+        if (is.numeric(line_data$coef[1])) {
+          # If both numeric it is linear regression
+          if (is.numeric(line_data$int[1])) {
+            y_min <- line_data$coef[1] * min_range + line_data$int[1]
+          }
+          # If intercept is character it is logistic regression
+          else {
+            linear_pred <- line_data$coef[1] * min_range + as.numeric(line_data$int[1])
+            y_min <- exp(linear_pred) / (1 + exp(linear_pred))
+          }
+          y <- c(y_min, line_data$y)
+        } # If coefficient is character it is polynomial regression
+        else {
+          poly_coefficients <- as.numeric(strsplit(line_data$coef[1], ", ")[[1]])
+          y <- c(sapply(min_range, function(x_val) sum((x_val^seq_along(poly_coefficients)) * poly_coefficients) + line_data$int[1]), line_data$y)
+        }
       }
       else if (x_max < max_range && x_min <= min_range) {
-        y_max <- line_data$coef[1] * max_range + line_data$int[1]
         x <- c(line_data$x, max_range)
-        y <- c(line_data$y, y_max)
+        if (is.numeric(line_data$coef[1])) {
+          if (is.numeric(line_data$int[1])) {
+            y_max <- line_data$coef[1] * max_range + line_data$int[1]
+          }
+          else {
+            linear_pred <- line_data$coef[1] * max_range + as.numeric(line_data$int[1])
+            y_max <- exp(linear_pred) / (1 + exp(linear_pred))
+          }
+          y <- c(line_data$y, y_max)
+        }
+        else {
+          poly_coefficients <- as.numeric(strsplit(line_data$coef[1], ", ")[[1]])
+          y <- c(line_data$y, sapply(max_range, function(x_val) sum((x_val^seq_along(poly_coefficients)) * poly_coefficients) + line_data$int[1]))
+        }
       }
       else {
-        y_min <- line_data$coef[1] * min_range + line_data$int[1]
-        y_max <- line_data$coef[1] * max_range + line_data$int[1]
         x <- c(min_range, line_data$x, max_range)
-        y <- c(y_min, line_data$y, y_max)
+        if (is.numeric(line_data$coef[1])) {
+          if (is.numeric(line_data$int[1])) {
+            y_min <- line_data$coef[1] * min_range + line_data$int[1]
+            y_max <- line_data$coef[1] * max_range + line_data$int[1]
+          }
+          else {
+            linear_pred <- line_data$coef[1] * x_range + as.numeric(line_data$int[1])
+            y_min <- exp(linear_pred[1]) / (1 + exp(linear_pred[1]))
+            y_max <- exp(linear_pred[2]) / (1 + exp(linear_pred[2]))
+          }
+          y <- c(y_min, line_data$y, y_max)
+        }
+        else {
+          poly_coefficients <- as.numeric(strsplit(line_data$coef[1], ", ")[[1]])
+          pred_values <- sapply(x_range, function(x_val) sum((x_val^seq_along(poly_coefficients)) * poly_coefficients) + line_data$int[1])
+          y <- c(pred_values[1], line_data$y, pred_values[2])
+        }
       }
       line_data <- tibble(x = x,
                           y = y)
