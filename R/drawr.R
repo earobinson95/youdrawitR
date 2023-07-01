@@ -6,6 +6,7 @@
 #'
 #'
 #' @param data The data containing line data (with equation info) and point data.
+#' @param run_app Logical value indicating whether to run the Shiny app. Can also define as true if user would like to remove buttons. (default: FALSE)
 #' @param conf_int Whether to generate a 95\% confidence interval for the fitted line. Must select conf_int = TRUE in \code{linearDataGen()} or \code{customDataGen()} functions to generate interval. (default: FALSE)
 #' @param linear Choice of a linear or log y-scale, true = linear, else = log. If using log scale choose log_y = TRUE in \code{customDataGen()} function when generating data. (default: "true").
 #' @param log_base The base of the log scale, only affects graph if not linear is not "true". If NULL will use natural logarithm. Log_base should match log_base choice in \code{customDataGen()} function (default = NULL)
@@ -27,7 +28,6 @@
 #' @param y_axis_buffer The buffer for the y-axis added to the y range, calculated as a percent of y range. Only used if y_range is NULL, and must be greater than or equal to 0. (default: 0.05)
 #' @param show_finished Whether to show the finished plot (default: TRUE).
 #' @param show_tooltip Whether to display tooltips or not. (default: FALSE)
-#' @param shiny_message_loc The location to display the shiny message. (default = NULL)
 #' 
 #' @examples
 #' # Example 1: Simulating linear data and plotting
@@ -75,9 +75,11 @@
 #' automatically when function is called if not assigned to a variable for further use.
 #' @export
 #' 
-#' @importFrom r2d3 r2d3
-#' @importFrom jsonlite toJSON
+#' @importFrom r2d3 r2d3 renderD3
+#' @importFrom jsonlite toJSON fromJSON
+#' @importFrom shiny shinyApp navbarPage tabPanel tags fluidRow column helpText h4 br actionButton observeEvent
 drawr <- function(data, 
+                  run_app           = FALSE,
                   conf_int          = FALSE,
                   linear            = "true", 
                   log_base          = NULL,
@@ -98,8 +100,7 @@ drawr <- function(data,
                   x_axis_buffer     = 0, 
                   y_axis_buffer     = 0.05,
                   show_finished     = TRUE,
-                  show_tooltip      = FALSE,
-                  shiny_message_loc = NULL) {
+                  show_tooltip      = FALSE) {
   if (x_axis_buffer < 0) {
     stop("Error: x_axis_buffer must be greater than or equal to 0")
   }
@@ -164,20 +165,60 @@ drawr <- function(data,
     # If given range larger than line range increase line size
     if (x_min > min_range || x_max < max_range) {
       if (x_min > min_range && x_max >= max_range) {
-        y_min <- line_data$coef[1] * min_range + line_data$int[1]
         x <- c(min_range, line_data$x)
-        y <- c(y_min, line_data$y)
+        if (is.numeric(line_data$coef[1])) {
+          # If both numeric it is linear regression
+          if (is.numeric(line_data$int[1])) {
+            y_min <- line_data$coef[1] * min_range + line_data$int[1]
+          }
+          # If intercept is character it is logistic regression
+          else {
+            linear_pred <- line_data$coef[1] * min_range + as.numeric(line_data$int[1])
+            y_min <- exp(linear_pred) / (1 + exp(linear_pred))
+          }
+          y <- c(y_min, line_data$y)
+        } # If coefficient is character it is polynomial regression
+        else {
+          poly_coefficients <- as.numeric(strsplit(line_data$coef[1], ", ")[[1]])
+          y <- c(sapply(min_range, function(x_val) sum((x_val^seq_along(poly_coefficients)) * poly_coefficients) + line_data$int[1]), line_data$y)
+        }
       }
       else if (x_max < max_range && x_min <= min_range) {
-        y_max <- line_data$coef[1] * max_range + line_data$int[1]
         x <- c(line_data$x, max_range)
-        y <- c(line_data$y, y_max)
+        if (is.numeric(line_data$coef[1])) {
+          if (is.numeric(line_data$int[1])) {
+            y_max <- line_data$coef[1] * max_range + line_data$int[1]
+          }
+          else {
+            linear_pred <- line_data$coef[1] * max_range + as.numeric(line_data$int[1])
+            y_max <- exp(linear_pred) / (1 + exp(linear_pred))
+          }
+          y <- c(line_data$y, y_max)
+        }
+        else {
+          poly_coefficients <- as.numeric(strsplit(line_data$coef[1], ", ")[[1]])
+          y <- c(line_data$y, sapply(max_range, function(x_val) sum((x_val^seq_along(poly_coefficients)) * poly_coefficients) + line_data$int[1]))
+        }
       }
       else {
-        y_min <- line_data$coef[1] * min_range + line_data$int[1]
-        y_max <- line_data$coef[1] * max_range + line_data$int[1]
         x <- c(min_range, line_data$x, max_range)
-        y <- c(y_min, line_data$y, y_max)
+        if (is.numeric(line_data$coef[1])) {
+          if (is.numeric(line_data$int[1])) {
+            y_min <- line_data$coef[1] * min_range + line_data$int[1]
+            y_max <- line_data$coef[1] * max_range + line_data$int[1]
+          }
+          else {
+            linear_pred <- line_data$coef[1] * x_range + as.numeric(line_data$int[1])
+            y_min <- exp(linear_pred[1]) / (1 + exp(linear_pred[1]))
+            y_max <- exp(linear_pred[2]) / (1 + exp(linear_pred[2]))
+          }
+          y <- c(y_min, line_data$y, y_max)
+        }
+        else {
+          poly_coefficients <- as.numeric(strsplit(line_data$coef[1], ", ")[[1]])
+          pred_values <- sapply(x_range, function(x_val) sum((x_val^seq_along(poly_coefficients)) * poly_coefficients) + line_data$int[1])
+          y <- c(pred_values[1], line_data$y, pred_values[2])
+        }
       }
       line_data <- tibble(x = x,
                           y = y)
@@ -224,32 +265,31 @@ drawr <- function(data,
                      auto_unbox = FALSE, 
                      rownames = TRUE)
   } 
-
+  
   return(r2d3(data   = data_to_json(data), 
-             script = system.file("www/you-draw-it.js", package = "youdrawitR"),
-             d3_version = "5",
-             dependencies = c("d3-jetpack"),
-             options = list(draw_start        = draw_start, 
-                            points_end        = points_end,
-                            linear            = as.character(linear),
-                            log_base          = log_base,
-                            free_draw         = free_draw, 
-                            points            = points,
-                            aspect_ratio      = aspect_ratio,
-                            pin_start         = TRUE, 
-                            x_range           = x_range,
-                            x_by              = x_by,
-                            x_lab             = x_lab,
-                            y_range           = y_range,
-                            y_lab             = y_lab,
-                            subtitle          = subtitle,
-                            line_style        = NULL,
-                            data_tab1_color   = data_tab1_color, 
-                            drawn_line_color  = drawn_line_color,
-                            show_finished     = show_finished,
-                            show_tooltip      = show_tooltip,
-                            shiny_message_loc = shiny_message_loc,
-                            title             = title,
-                            conf_int          = conf_int)
-  ))
+              script = system.file("www/you-draw-it.js", package = "youdrawitR"),
+              d3_version = "5",
+              dependencies = c("d3-jetpack"),
+              options = list(draw_start        = draw_start, 
+                             run_app           = run_app,
+                             points_end        = points_end,
+                             linear            = as.character(linear),
+                             log_base          = log_base,
+                             free_draw         = free_draw, 
+                             points            = points,
+                             aspect_ratio      = aspect_ratio,
+                             pin_start         = TRUE, 
+                             x_range           = x_range,
+                             x_by              = x_by,
+                             x_lab             = x_lab,
+                             y_range           = y_range,
+                             y_lab             = y_lab,
+                             subtitle          = subtitle,
+                             line_style        = NULL,
+                             data_tab1_color   = data_tab1_color, 
+                             drawn_line_color  = drawn_line_color,
+                             show_finished     = show_finished,
+                             show_tooltip      = show_tooltip,
+                             title             = title,
+                             conf_int          = conf_int)))
 }

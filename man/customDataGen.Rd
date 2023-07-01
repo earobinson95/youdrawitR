@@ -8,6 +8,9 @@ customDataGen(
   df,
   xvar = NULL,
   yvar = NULL,
+  regression_type = "linear",
+  success_level = NULL,
+  degree = 2,
   log_y = F,
   log_base = NULL,
   conf_int = F
@@ -20,11 +23,17 @@ customDataGen(
 
 \item{yvar}{The name of the y variable as a string. If null is provided will use second column of dataframe. (default: NULL)}
 
-\item{log_y}{Specify whether to apply a logarithmic transformation to y for the fitted line for when using a non-linear scale in the \code{drawr()} function. If TRUE, the fitted line is transformed as log(y) ~ x; if FALSE, the fitted line is not transformed. (default: FALSE)}
+\item{regression_type}{Type of regression data to generate. Options include "linear", "polynomial", or "logistic" (only for binary logistic regression). (Default: "linear")}
+
+\item{success_level}{Which level of binary categorical variable should be considered success if using "logistic" regression. If NULL uses alphabetical order. (Default: NULL)}
+
+\item{degree}{The degree of the polynomial regression. If chosen in regression_type. (Default: 2)}
+
+\item{log_y}{Specify whether to apply a logarithmic transformation to y for the fitted line for when using a non-linear scale in the \code{drawr()} function. Currently only for linear regression. If TRUE, the fitted line is transformed as log(y) ~ x; if FALSE, the fitted line is not transformed. (default: FALSE)}
 
 \item{log_base}{Log base for log transformation, only applies if log_y is true. If NULL will apply a natural log transformation. Log_base should match log_base choice in \code{drawr()} function. (default: NULL)}
 
-\item{conf_int}{If a 95\% confidence interval should be generated for \code{drawr()} function. (default: FALSE)}
+\item{conf_int}{If a 95\% confidence interval should be generated for \code{drawr()} function. Currently only for linear regression. (default: FALSE)}
 }
 \value{
 A list containing the point data and line data (with equation info) processed from inputted data frame.

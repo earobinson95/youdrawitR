@@ -1,4 +1,4 @@
-// !preview r2d3 data = data, options = list(free_draw = TRUE, draw_start = 1, points_end = 20, pin_start = TRUE, x_range = NULL, subtitle = "Subtitle Test", y_range = NULL, line_style = list(strokeWidth = 4), data_line_color = 'steelblue', drawn_line_color = 'steelblue', show_finished = TRUE, shiny_message_loc = NULL, linear = 'true', title = "Test", x_lab = "x axis test", y_lab = "y axis test", points = "full", aspect_ratio = 1, x_by = 0, log_base = 10, show_tooltip = TRUE, conf_int = TRUE), dependencies = c('d3-jetpack'), d3_version = "5", viewer = "browser"
+// !preview r2d3 data = data, options = list(free_draw = TRUE, draw_start = 1, points_end = 20, pin_start = TRUE, x_range = NULL, subtitle = "Subtitle Test", y_range = NULL, line_style = list(strokeWidth = 4), data_line_color = 'steelblue', drawn_line_color = 'steelblue', show_finished = TRUE, linear = 'true', title = "Test", x_lab = "x axis test", y_lab = "y axis test", points = "full", aspect_ratio = 1, x_by = 0, log_base = 10, show_tooltip = TRUE, conf_int = TRUE, run_app = FALSE), dependencies = c('d3-jetpack'), d3_version = "5", viewer = "browser"
 
 // Make sure R has the following loaded
 // library(tibble)
@@ -138,6 +138,54 @@ function start_drawer(state, reset = true){
     state.drawable_points = setup_drawable_points(state);
   }
   
+  if (!state.run_app) {
+    d3.select("body")
+    .append("div")
+    .style("position", "relative")
+    .append("button")
+    .text("Reset")
+    .style("position", "absolute")
+    .style("top", `${margin.top}px`)
+    .style("left", `${state.w + margin.left + 10}px`)
+    .style("width", "80")
+    .style("height", "25")
+      .on("click", function() {
+      start_drawer(state, reset = true)
+    });
+    
+    
+    d3.select("body")
+      .append("div")
+      .style("position", "relative")
+      .append("button")
+      .text("Download Drawn Data")
+      .style("position", "absolute")
+      .style("bottom", `${-margin.bottom}px`)
+      .style("left", `${state.w + margin.left + 10}px`)
+      .style("width", "150")
+      .style("height", "25")
+      .on("click", function() {
+        var drawn_line = svg.select("path.user_line").datum();
+        
+        // Convert the completedLine to JSON
+        var jsonData = JSON.stringify(drawn_line);
+        
+        var bb = new Blob([jsonData ], { type: 'text/plain' });
+        var a = document.createElement('a');
+        a.download = 'draw_line_data.txt';
+        a.href = window.URL.createObjectURL(bb);
+        a.click();
+    });
+  }
+
+  if(typeof Shiny !== 'undefined') {
+    Shiny.addCustomMessageHandler('resetAction', function(reset) {
+        start_drawer(state, reset);
+    });
+  }
+
+  
+  
   // if we have points, we draw user's line.
   draw_user_line(state, scales);
   draw_rectangle(state, scales);
@@ -178,18 +226,21 @@ function start_drawer(state, reset = true){
       const distance = calculateDistance(svg.select("path.user_line").datum(), state.line_data).toFixed(4);
       console.log('Average distance between the drawn line and actual line: '+ distance);
       
-      if(state.shiny_message_loc){
-        // Make sure shiny is available before sending message
-        if(typeof Shiny !== 'undefined'){
-          // Send drawn points off to server
-          Shiny.onInputChange(
-            state.shiny_message_loc,
-            state.drawable_points.map(d => d.y)
-          );
-        } else {
-          console.log(`Sending message to ${state.shiny_message_loc}`);
-        }
+      
+      // Convert the completedLine to JSON
+      if(typeof Shiny !== 'undefined') {
+        var jsonData = JSON.stringify(svg.select("path.user_line").datum());
+      
+        // Send the data to the Shiny server
+        Shiny.setInputValue("completedLineData", jsonData);
       }
+      
+      // Send the JSON data to R using an HTTP request
+      // var request = new XMLHttpRequest();
+    //  request.open("POST", "http://localhost:8000", true);
+  //    request.setRequestHeader("Content-Type", "application/json");
+//      request.send(jsonData);
+      
     }
   };
   
