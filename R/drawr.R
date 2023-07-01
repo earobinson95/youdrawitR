@@ -76,7 +76,7 @@
 #' @export
 #' 
 #' @importFrom r2d3 r2d3 renderD3
-#' @importFrom jsonlite toJSON
+#' @importFrom jsonlite toJSON fromJSON
 #' @importFrom shiny shinyApp navbarPage tabPanel tags fluidRow column helpText h4 br actionButton observeEvent
 drawr <- function(data, 
                   run_app           = FALSE,
@@ -266,34 +266,36 @@ drawr <- function(data,
                      rownames = TRUE)
   } 
   
+  drawr_output <- r2d3(data   = data_to_json(data), 
+                     script = system.file("www/you-draw-it.js", package = "youdrawitR"),
+                     d3_version = "5",
+                     dependencies = c("d3-jetpack"),
+                     options = list(draw_start        = draw_start, 
+                                    run_app           = run_app,
+                                    points_end        = points_end,
+                                    linear            = as.character(linear),
+                                    log_base          = log_base,
+                                    free_draw         = free_draw, 
+                                    points            = points,
+                                    aspect_ratio      = aspect_ratio,
+                                    pin_start         = TRUE, 
+                                    x_range           = x_range,
+                                    x_by              = x_by,
+                                    x_lab             = x_lab,
+                                    y_range           = y_range,
+                                    y_lab             = y_lab,
+                                    subtitle          = subtitle,
+                                    line_style        = NULL,
+                                    data_tab1_color   = data_tab1_color, 
+                                    drawn_line_color  = drawn_line_color,
+                                    show_finished     = show_finished,
+                                    show_tooltip      = show_tooltip,
+                                    title             = title,
+                                    conf_int          = conf_int)
+  )
+  
   if (!run_app) {
-    return(r2d3(data   = data_to_json(data), 
-                script = system.file("www/you-draw-it.js", package = "youdrawitR"),
-                d3_version = "5",
-                dependencies = c("d3-jetpack"),
-                options = list(draw_start        = draw_start, 
-                               run_app           = run_app,
-                               points_end        = points_end,
-                               linear            = as.character(linear),
-                               log_base          = log_base,
-                               free_draw         = free_draw, 
-                               points            = points,
-                               aspect_ratio      = aspect_ratio,
-                               pin_start         = TRUE, 
-                               x_range           = x_range,
-                               x_by              = x_by,
-                               x_lab             = x_lab,
-                               y_range           = y_range,
-                               y_lab             = y_lab,
-                               subtitle          = subtitle,
-                               line_style        = NULL,
-                               data_tab1_color   = data_tab1_color, 
-                               drawn_line_color  = drawn_line_color,
-                               show_finished     = show_finished,
-                               show_tooltip      = show_tooltip,
-                               title             = title,
-                               conf_int          = conf_int)
-    ))
+    return(drawr_output)
   }
   else {
     ui <- navbarPage(
@@ -319,37 +321,19 @@ drawr <- function(data,
         session$sendCustomMessage("resetAction", "true")
       })
       
-      message_loc <- session$ns("drawr_message")
-      output$shinydrawr <- renderD3({
-        r2d3(data   = data_to_json(data), 
-             script = system.file("www/you-draw-it.js", package = "youdrawitR"),
-             d3_version = "5",
-             dependencies = c("d3-jetpack"),
-             options = list(draw_start        = draw_start, 
-                            run_app           = run_app,
-                            points_end        = points_end,
-                            linear            = as.character(linear),
-                            log_base          = log_base,
-                            free_draw         = free_draw, 
-                            points            = points,
-                            aspect_ratio      = aspect_ratio,
-                            pin_start         = TRUE, 
-                            x_range           = x_range,
-                            x_by              = x_by,
-                            x_lab             = x_lab,
-                            y_range           = y_range,
-                            y_lab             = y_lab,
-                            subtitle          = subtitle,
-                            line_style        = NULL,
-                            data_tab1_color   = data_tab1_color, 
-                            drawn_line_color  = drawn_line_color,
-                            show_finished     = show_finished,
-                            show_tooltip      = show_tooltip,
-                            shiny_message_loc = message_loc,
-                            title             = title,
-                            conf_int          = conf_int)
-        )
+      user_line_data <- eventReactive(input$completedLineData, {
+        completedLineData <- input$completedLineData
+
+        # Convert the JSON data to a list or data frame
+        fromJSON(completedLineData)
       })
+      
+      observe({
+        # Access the value of user_line_data() within the observe block
+        print(user_line_data())
+      })
+      
+      output$shinydrawr <- renderD3({drawr_output})
     }
     
     shinyApp(
