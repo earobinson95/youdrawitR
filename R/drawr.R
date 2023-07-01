@@ -6,7 +6,7 @@
 #'
 #'
 #' @param data The data containing line data (with equation info) and point data.
-#' @param run_app Logical value indicating whether to run the Shiny app. (default: FALSE)
+#' @param run_app Logical value indicating whether to run the Shiny app. Can also define as true if user would like to remove buttons. (default: FALSE)
 #' @param conf_int Whether to generate a 95\% confidence interval for the fitted line. Must select conf_int = TRUE in \code{linearDataGen()} or \code{customDataGen()} functions to generate interval. (default: FALSE)
 #' @param linear Choice of a linear or log y-scale, true = linear, else = log. If using log scale choose log_y = TRUE in \code{customDataGen()} function when generating data. (default: "true").
 #' @param log_base The base of the log scale, only affects graph if not linear is not "true". If NULL will use natural logarithm. Log_base should match log_base choice in \code{customDataGen()} function (default = NULL)
@@ -266,78 +266,30 @@ drawr <- function(data,
                      rownames = TRUE)
   } 
   
-  drawr_output <- r2d3(data   = data_to_json(data), 
-                     script = system.file("www/you-draw-it.js", package = "youdrawitR"),
-                     d3_version = "5",
-                     dependencies = c("d3-jetpack"),
-                     options = list(draw_start        = draw_start, 
-                                    run_app           = run_app,
-                                    points_end        = points_end,
-                                    linear            = as.character(linear),
-                                    log_base          = log_base,
-                                    free_draw         = free_draw, 
-                                    points            = points,
-                                    aspect_ratio      = aspect_ratio,
-                                    pin_start         = TRUE, 
-                                    x_range           = x_range,
-                                    x_by              = x_by,
-                                    x_lab             = x_lab,
-                                    y_range           = y_range,
-                                    y_lab             = y_lab,
-                                    subtitle          = subtitle,
-                                    line_style        = NULL,
-                                    data_tab1_color   = data_tab1_color, 
-                                    drawn_line_color  = drawn_line_color,
-                                    show_finished     = show_finished,
-                                    show_tooltip      = show_tooltip,
-                                    title             = title,
-                                    conf_int          = conf_int)
-  )
-  
-  if (!run_app) {
-    return(drawr_output)
-  }
-  else {
-    ui <- navbarPage(
-      "Can 'You Draw It'?",
-      
-      tabPanel(
-        title = "Example: Eye Fitting Straight Lines in the Modern Era",
-        fluidRow(
-          column(
-            width = 12,
-            helpText(h4("Use your mouse to fill in the trend in the yellow box region")),
-            r2d3::d3Output("shinydrawr", height = "500px"),
-            br(),
-            actionButton("reset", "Reset")
-          )
-        )
-      )
-    )
-    
-    server <- function(input, output, session) {
-      observeEvent(input$reset, {
-        reset = "true"
-        session$sendCustomMessage("resetAction", "true")
-      })
-      
-      user_line_data <- eventReactive(input$completedLineData, {
-        completedLineData <- input$completedLineData
-
-        # Convert the JSON data to a list or data frame
-        fromJSON(completedLineData)
-      })
-      
-      observe({
-        # Access the value of user_line_data() within the observe block
-        print(user_line_data())
-      })
-      
-      output$shinydrawr <- renderD3({drawr_output})
-    }
-    
-    shinyApp(
-      ui = ui,
-      server = server)
-    }
+  return(r2d3(data   = data_to_json(data), 
+              script = system.file("www/you-draw-it.js", package = "youdrawitR"),
+              d3_version = "5",
+              dependencies = c("d3-jetpack"),
+              options = list(draw_start        = draw_start, 
+                             run_app           = run_app,
+                             points_end        = points_end,
+                             linear            = as.character(linear),
+                             log_base          = log_base,
+                             free_draw         = free_draw, 
+                             points            = points,
+                             aspect_ratio      = aspect_ratio,
+                             pin_start         = TRUE, 
+                             x_range           = x_range,
+                             x_by              = x_by,
+                             x_lab             = x_lab,
+                             y_range           = y_range,
+                             y_lab             = y_lab,
+                             subtitle          = subtitle,
+                             line_style        = NULL,
+                             data_tab1_color   = data_tab1_color, 
+                             drawn_line_color  = drawn_line_color,
+                             show_finished     = show_finished,
+                             show_tooltip      = show_tooltip,
+                             title             = title,
+                             conf_int          = conf_int)))
 }

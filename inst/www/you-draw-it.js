@@ -177,13 +177,13 @@ function start_drawer(state, reset = true){
         a.click();
     });
   }
-  else {
-    if(typeof Shiny !== 'undefined') {
-      Shiny.addCustomMessageHandler('resetAction', function(reset) {
-          start_drawer(state, reset);
-      });
-    }
+
+  if(typeof Shiny !== 'undefined') {
+    Shiny.addCustomMessageHandler('resetAction', function(reset) {
+        start_drawer(state, reset);
+    });
   }
+
   
   
   // if we have points, we draw user's line.
@@ -227,14 +227,12 @@ function start_drawer(state, reset = true){
       console.log('Average distance between the drawn line and actual line: '+ distance);
       
       
-      if (state.run_app) {
-        // Convert the completedLine to JSON
-        if(typeof Shiny !== 'undefined') {
-          var jsonData = JSON.stringify(svg.select("path.user_line").datum());
-        
-          // Send the data to the Shiny server
-          Shiny.setInputValue("completedLineData", jsonData);
-        }
+      // Convert the completedLine to JSON
+      if(typeof Shiny !== 'undefined') {
+        var jsonData = JSON.stringify(svg.select("path.user_line").datum());
+      
+        // Send the data to the Shiny server
+        Shiny.setInputValue("completedLineData", jsonData);
       }
       
       // Send the JSON data to R using an HTTP request

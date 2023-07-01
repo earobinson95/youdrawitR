@@ -2,6 +2,7 @@
 
 export(customDataGen)
 export(drawr)
+export(drawr_app)
 export(linearDataGen)
 importFrom(dplyr,"%>%")
 importFrom(dplyr,across)

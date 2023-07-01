@@ -33,7 +33,7 @@ drawr(
 \arguments{
 \item{data}{The data containing line data (with equation info) and point data.}
 
-\item{run_app}{Logical value indicating whether to run the Shiny app. (default: FALSE)}
+\item{run_app}{Logical value indicating whether to run the Shiny app. Can also define as true if user would like to remove buttons. (default: FALSE)}
 
 \item{conf_int}{Whether to generate a 95\% confidence interval for the fitted line. Must select conf_int = TRUE in \code{linearDataGen()} or \code{customDataGen()} functions to generate interval. (default: FALSE)}
 
