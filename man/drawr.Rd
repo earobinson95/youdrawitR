@@ -6,6 +6,7 @@
 \usage{
 drawr(
   data,
+  save_html_file_path = NULL,
   run_app = FALSE,
   conf_int = FALSE,
   linear = "true",
@@ -32,6 +33,8 @@ drawr(
 }
 \arguments{
 \item{data}{The data containing line data (with equation info) and point data.}
+
+\item{save_html_file_path}{File path to save d3 output as an html. If null will not save. Can just provide filename and will save to current working directory. (default: NULL)}
 
 \item{run_app}{Logical value indicating whether to run the Shiny app. Can also define as true if user would like to remove buttons. (default: FALSE)}
 

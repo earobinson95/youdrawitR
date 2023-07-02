@@ -6,6 +6,7 @@
 #'
 #'
 #' @param data The data containing line data (with equation info) and point data.
+#' @param save_html_file_path File path to save d3 output as an html. If null will not save. Can just provide filename and will save to current working directory. (default: NULL)
 #' @param run_app Logical value indicating whether to run the Shiny app. Can also define as true if user would like to remove buttons. (default: FALSE)
 #' @param conf_int Whether to generate a 95\% confidence interval for the fitted line. Must select conf_int = TRUE in \code{linearDataGen()} or \code{customDataGen()} functions to generate interval. (default: FALSE)
 #' @param linear Choice of a linear or log y-scale, true = linear, else = log. If using log scale choose log_y = TRUE in \code{customDataGen()} function when generating data. (default: "true").
@@ -75,10 +76,11 @@
 #' automatically when function is called if not assigned to a variable for further use.
 #' @export
 #' 
-#' @importFrom r2d3 r2d3 renderD3
+#' @importFrom r2d3 r2d3 renderD3 save_d3_html
 #' @importFrom jsonlite toJSON fromJSON
 #' @importFrom shiny shinyApp navbarPage tabPanel tags fluidRow column helpText h4 br actionButton observeEvent
 drawr <- function(data, 
+                  save_html_file_path = NULL,
                   run_app           = FALSE,
                   conf_int          = FALSE,
                   linear            = "true", 
@@ -266,30 +268,35 @@ drawr <- function(data,
                      rownames = TRUE)
   } 
   
-  return(r2d3(data   = data_to_json(data), 
-              script = system.file("www/you-draw-it.js", package = "youdrawitR"),
-              d3_version = "5",
-              dependencies = c("d3-jetpack"),
-              options = list(draw_start        = draw_start, 
-                             run_app           = run_app,
-                             points_end        = points_end,
-                             linear            = as.character(linear),
-                             log_base          = log_base,
-                             free_draw         = free_draw, 
-                             points            = points,
-                             aspect_ratio      = aspect_ratio,
-                             pin_start         = TRUE, 
-                             x_range           = x_range,
-                             x_by              = x_by,
-                             x_lab             = x_lab,
-                             y_range           = y_range,
-                             y_lab             = y_lab,
-                             subtitle          = subtitle,
-                             line_style        = NULL,
-                             data_tab1_color   = data_tab1_color, 
-                             drawn_line_color  = drawn_line_color,
-                             show_finished     = show_finished,
-                             show_tooltip      = show_tooltip,
-                             title             = title,
-                             conf_int          = conf_int)))
+  drawr_out <- r2d3(data   = data_to_json(data), 
+                    script = system.file("www/you-draw-it.js", package = "youdrawitR"),
+                    d3_version = "5",
+                    dependencies = c("d3-jetpack"),
+                    options = list(draw_start        = draw_start, 
+                                   run_app           = run_app,
+                                   points_end        = points_end,
+                                   linear            = as.character(linear),
+                                   log_base          = log_base,
+                                   free_draw         = free_draw, 
+                                   points            = points,
+                                   aspect_ratio      = aspect_ratio,
+                                   pin_start         = TRUE, 
+                                   x_range           = x_range,
+                                   x_by              = x_by,
+                                   x_lab             = x_lab,
+                                   y_range           = y_range,
+                                   y_lab             = y_lab,
+                                   subtitle          = subtitle,
+                                   line_style        = NULL,
+                                   data_tab1_color   = data_tab1_color, 
+                                   drawn_line_color  = drawn_line_color,
+                                   show_finished     = show_finished,
+                                   show_tooltip      = show_tooltip,
+                                   title             = title,
+                                   conf_int          = conf_int))
+  
+  if (!is.null(save_html_file_path)) {
+    save_d3_html(drawr_out, save_html_file_path)
+  }
+  return(drawr_out)
 }

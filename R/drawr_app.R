@@ -8,17 +8,6 @@
 #'
 #' @export
 drawr_app <- function(drawr_output = NULL) {
-  if (is.null(drawr_output)) {
-    df <- data.frame(
-      Time = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
-      Cost = c(1, 4, 9, 16, 18, 16, 9, 4, 2, 1)
-    )
-    
-    data <- df |>  customDataGen(regression_type = "polynomial")
-    
-    drawr_output <- drawr(data, run_app = T)
-  }
-  drawr_output <<- drawr_output
   ui <- navbarPage(
     "Can 'You Draw It'?",
     
@@ -35,26 +24,59 @@ drawr_app <- function(drawr_output = NULL) {
       )
     )
   )
-
-  server <- function(input, output, session) {
-    observeEvent(input$reset, {
-      reset = "true"
-      session$sendCustomMessage("resetAction", "true")
-    })
-    
-    user_line_data <- eventReactive(input$completedLineData, {
-      completedLineData <- input$completedLineData
+  
+  if (is.null(drawr_output)) {
+    server <- function(input, output, session) {
+      df <- data.frame(
+        Time = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
+        Cost = c(1, 4, 9, 16, 18, 16, 9, 4, 2, 1)
+      )
       
-      # Convert the JSON data to a list or data frame
-      jsonlite::fromJSON(completedLineData)
-    })
-    
-    observe({
-      # Access the value of user_line_data() within the observe block
-      print(user_line_data())
-    })
-    
-    output$shinydrawr <- r2d3::renderD3({ drawr_output })
+      data <- df |>  customDataGen(regression_type = "polynomial")
+      
+      drawr_output <- drawr(data, run_app = T)
+      
+      observeEvent(input$reset, {
+        reset = "true"
+        session$sendCustomMessage("resetAction", "true")
+      })
+      
+      user_line_data <- eventReactive(input$completedLineData, {
+        completedLineData <- input$completedLineData
+        
+        # Convert the JSON data to a list or data frame
+        jsonlite::fromJSON(completedLineData)
+      })
+      
+      observe({
+        # Access the value of user_line_data() within the observe block
+        print(user_line_data())
+      })
+      
+      output$shinydrawr <- r2d3::renderD3({ drawr_output })
+    }
+  }
+  else {
+    server <- function(input, output, session) {
+      observeEvent(input$reset, {
+        reset = "true"
+        session$sendCustomMessage("resetAction", "true")
+      })
+      
+      user_line_data <- eventReactive(input$completedLineData, {
+        completedLineData <- input$completedLineData
+        
+        # Convert the JSON data to a list or data frame
+        jsonlite::fromJSON(completedLineData)
+      })
+      
+      observe({
+        # Access the value of user_line_data() within the observe block
+        print(user_line_data())
+      })
+      
+      output$shinydrawr <- r2d3::renderD3({ drawr_output })
+    }
   }
   
   return(shinyApp(ui = ui, server = server))
