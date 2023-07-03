@@ -4,10 +4,10 @@
 \alias{drawr_app}
 \title{Create a Shiny app for drawing}
 \usage{
-drawr_app(drawr_output)
+drawr_app(drawr_output = NULL)
 }
 \arguments{
-\item{drawr_output}{The output from the \code{drawr()} function to render the drawing interface.}
+\item{drawr_output}{The output from the \code{drawr()} function to render the drawing interface. If null will auto randomly generate data using \code{linearDataGen()} function. (Default: NULL)}
 }
 \value{
 A Shiny app object.

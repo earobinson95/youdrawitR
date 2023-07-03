@@ -16,7 +16,10 @@ Imports:
     r2d3,
     stats,
     tibble,
-    shiny
+    shiny,
+    readxl
 Suggests: 
+    globals,
+    shinytest,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
