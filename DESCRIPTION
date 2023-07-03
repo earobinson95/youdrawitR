@@ -16,7 +16,8 @@ Imports:
     r2d3,
     stats,
     tibble,
-    shiny
+    shiny,
+    readxl
 Suggests: 
     globals,
     shinytest,

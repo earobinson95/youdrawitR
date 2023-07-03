@@ -31,6 +31,9 @@ customDataGen <- function(df, xvar = NULL, yvar = NULL, regression_type = "linea
     stop("Error: The specified y-variable does not exist in the column names of the data frame.")
   }
   
+  # Convert regression_type to lowercase
+  regression_type <- tolower(regression_type)
+  
   if ((regression_type == "linear") || (regression_type == "polynomial")) {
     # Filter out non-numeric and NA values
     if (is.null(xvar) && is.null(yvar)) {

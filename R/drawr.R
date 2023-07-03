@@ -78,7 +78,6 @@
 #' 
 #' @importFrom r2d3 r2d3 renderD3 save_d3_html
 #' @importFrom jsonlite toJSON fromJSON
-#' @importFrom shiny shinyApp navbarPage tabPanel tags fluidRow column helpText h4 br actionButton observeEvent
 drawr <- function(data, 
                   save_html_file_path = NULL,
                   run_app           = FALSE,
