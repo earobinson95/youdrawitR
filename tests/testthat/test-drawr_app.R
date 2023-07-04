@@ -1,4 +1,8 @@
 test_that("Unit tests for shiny", {
+  if (!shinytest::dependenciesInstalled()) {
+    shinytest::installDependencies()
+  }
+  
   shiny_obj <- drawr_app()
 
   app <- shinytest::ShinyDriver$new(shiny_obj)

@@ -10,7 +10,8 @@ customDataGen(
   yvar = NULL,
   regression_type = "linear",
   success_level = NULL,
-  degree = 2,
+  degree = NULL,
+  span = 0.75,
   log_y = F,
   log_base = NULL,
   conf_int = F
@@ -23,11 +24,13 @@ customDataGen(
 
 \item{yvar}{The name of the y variable as a string. If null is provided will use second column of dataframe. (default: NULL)}
 
-\item{regression_type}{Type of regression data to generate. Options include "linear", "polynomial", or "logistic" (only for binary logistic regression). (Default: "linear")}
+\item{regression_type}{Type of regression data to generate. Options include "linear", "polynomial", "logistic" (only for binary logistic regression), or "loess". (Default: "linear")}
 
 \item{success_level}{Which level of binary categorical variable should be considered success if using "logistic" regression. If NULL uses alphabetical order. (Default: NULL)}
 
-\item{degree}{The degree of the polynomial regression. If chosen in regression_type. (Default: 2)}
+\item{degree}{The degree for a polynomial or loess regression. If chosen in regression_type. For loess 'degree' must be 0, 1 or 2. (Default: 2 for polynomial, 1 for loess)}
+
+\item{span}{The span for a loess regression. (Default: 0.75)}
 
 \item{log_y}{Specify whether to apply a logarithmic transformation to y for the fitted line for when using a non-linear scale in the \code{drawr()} function. Currently only for linear regression. If TRUE, the fitted line is transformed as log(y) ~ x; if FALSE, the fitted line is not transformed. (default: FALSE)}
 

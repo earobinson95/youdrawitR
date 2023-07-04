@@ -6,9 +6,10 @@
 #' @param df An R data frame containing the input data.
 #' @param xvar The name of the x variable as a string. If null is provided will use first column of dataframe (default: NULL)
 #' @param yvar The name of the y variable as a string. If null is provided will use second column of dataframe. (default: NULL)
-#' @param regression_type Type of regression data to generate. Options include "linear", "polynomial", or "logistic" (only for binary logistic regression). (Default: "linear")
+#' @param regression_type Type of regression data to generate. Options include "linear", "polynomial", "logistic" (only for binary logistic regression), or "loess". (Default: "linear")
 #' @param success_level Which level of binary categorical variable should be considered success if using "logistic" regression. If NULL uses alphabetical order. (Default: NULL)
-#' @param degree The degree of the polynomial regression. If chosen in regression_type. (Default: 2)
+#' @param degree The degree for a polynomial or loess regression. If chosen in regression_type. For loess 'degree' must be 0, 1 or 2. (Default: 2 for polynomial, 1 for loess)
+#' @param span The span for a loess regression. (Default: 0.75)
 #' @param log_y Specify whether to apply a logarithmic transformation to y for the fitted line for when using a non-linear scale in the \code{drawr()} function. Currently only for linear regression. If TRUE, the fitted line is transformed as log(y) ~ x; if FALSE, the fitted line is not transformed. (default: FALSE)
 #' @param log_base Log base for log transformation, only applies if log_y is true. If NULL will apply a natural log transformation. Log_base should match log_base choice in \code{drawr()} function. (default: NULL)
 #' @param conf_int If a 95\% confidence interval should be generated for \code{drawr()} function. Currently only for linear regression. (default: FALSE)
@@ -18,9 +19,9 @@
 #' @export
 #' 
 #' @importFrom tibble tibble
-#' @importFrom stats lm coef na.omit predict glm relevel
+#' @importFrom stats lm coef na.omit predict glm relevel loess
 #' @importFrom dplyr mutate across
-customDataGen <- function(df, xvar = NULL, yvar = NULL, regression_type = "linear", success_level = NULL, degree = 2, log_y = F, log_base = NULL, conf_int = F) {
+customDataGen <- function(df, xvar = NULL, yvar = NULL, regression_type = "linear", success_level = NULL, degree = NULL, span = 0.75, log_y = F, log_base = NULL, conf_int = F) {
   # Check if xvar is present in column names
   if (!is.null(xvar) && !(xvar %in% colnames(df))) {
     stop("Error: The specified x-variable does not exist in the column names of the data frame.")
@@ -34,7 +35,7 @@ customDataGen <- function(df, xvar = NULL, yvar = NULL, regression_type = "linea
   # Convert regression_type to lowercase
   regression_type <- tolower(regression_type)
   
-  if ((regression_type == "linear") || (regression_type == "polynomial")) {
+  if ((regression_type == "linear") || (regression_type == "polynomial") || (regression_type == "loess")) {
     # Filter out non-numeric and NA values
     if (is.null(xvar) && is.null(yvar)) {
       tryCatch({
@@ -127,7 +128,7 @@ customDataGen <- function(df, xvar = NULL, yvar = NULL, regression_type = "linea
     }
   }
   else {
-    stop("Error: Invalid regression_type. Supported values are 'linear', 'polynomial', or 'logistic'.")
+    stop("Error: Invalid regression_type. Supported values are 'linear', 'polynomial', 'logistic', or 'loess'.")
   }
   
   # Extract x and y variables from the dataframe
@@ -215,8 +216,22 @@ customDataGen <- function(df, xvar = NULL, yvar = NULL, regression_type = "linea
                         coef = coef,
                         int = int |> as.character())
   }
+  else if (regression_type == "loess") {
+    if (is.null(degree)) {
+      degree <- 1
+    }
+    loess.fit <- loess(y ~ x, data = df, degree = degree, span = span)
+    line_data <- tibble(data = "line_data",
+                        x = x,
+                        y = predict(loess.fit),
+                        coef = NULL,
+                        int = NULL)
+  }
   # Perform polynomial linear regression
   else {
+    if (is.null(degree)) {
+      degree <- 2
+    }
     poly.fit <- lm(y ~ poly(x, degree, raw = TRUE), data = df)
   
     # Extract the coefficients except the intercept
