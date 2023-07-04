@@ -392,6 +392,13 @@ function start_drawer(state, reset = true){
 
   function setup_drawable_points({line_data, free_draw, draw_start}){
     if (free_draw) {
+      if (state.x_range[0] != line_data[0].x) {
+        line_data.unshift({ x: state.x_range[0], y: null });
+      }
+      if (state.x_range[1] != line_data[line_data.length - 1].x) {
+        line_data.push({ x: state.x_range[1], y: null });
+      }
+      
       // Get range of x values from first and last point
       const x_range = line_data[line_data.length - 1].x - line_data[0].x
       
@@ -458,9 +465,7 @@ function draw_points({svg, point_data, points_end, points}, scales){
     
 }
 
-
-if (state.show_tooltip) {
-  // Define the tooltip element
+if ((state.show_tooltip) || (typeof Shiny !== 'undefined')) {
   var tooltip = d3.select("body").append("div")
   .attr("class", "tooltip")
   .style("position", "absolute")
@@ -472,6 +477,28 @@ if (state.show_tooltip) {
   .style("border-radius", "4px")
   .style("font-size", "14px")
   .style("pointer-events", "none");
+}
+
+if(typeof Shiny !== 'undefined') {
+  // Recieve message from shiny to show or hide tooltip
+  Shiny.addCustomMessageHandler("tooltipState", function(newState) {
+    if (newState) {
+      tooltip = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("position", "absolute")
+        .style("opacity", 0)
+        .style("padding", "6px")
+        .style("background-color", "#fff")
+        .style("color", "#333")
+        .style("border", "1px solid #ccc")
+        .style("border-radius", "4px")
+        .style("font-size", "14px")
+        .style("pointer-events", "none");
+    }
+    else {
+      d3.select(".tooltip").remove();
+    }
+  });
 }
 
 function draw_rectangle({svg, drawable_points, line_data, draw_start, width, height, free_draw, x_by}, scales){
@@ -509,9 +536,9 @@ function draw_rectangle({svg, drawable_points, line_data, draw_start, width, hei
       //.style("fill", "#e0f3f3")
       .style("fill-opacity", 0.4)
       .style("fill", "rgba(255,255,0,.8)")
-        
-  if (state.show_tooltip) {
-    svg.on("mousemove", function(d) {
+
+    if (typeof tooltip !== 'undefined') {
+      svg.on("mousemove", function(d) {
       // Get the mouse coordinates relative to the SVG container
       var [mouseX, mouseY] = d3.mouse(this);
   
@@ -550,7 +577,7 @@ function draw_rectangle({svg, drawable_points, line_data, draw_start, width, hei
         .duration(200)
         .style("opacity", 0);
     });
-  }
+    }
 }
 
 function draw_user_line(state, scales){

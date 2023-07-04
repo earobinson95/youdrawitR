@@ -24,7 +24,6 @@ drawr(
   y_lab = "",
   subtitle = "",
   drawn_line_color = "steelblue",
-  data_tab1_color = "steelblue",
   x_axis_buffer = 0,
   y_axis_buffer = 0.05,
   show_finished = TRUE,
@@ -69,8 +68,6 @@ drawr(
 \item{subtitle}{The subtitle of the plot. (default: "")}
 
 \item{drawn_line_color}{The color of the drawn line. (default: "steelblue")}
-
-\item{data_tab1_color}{The color of . (default: "steelblue")}
 
 \item{x_axis_buffer}{The buffer for the x-axis added to the x range, calculated as a percent of x range. Only used if x_range is NULL, and must be greater than or equal to 0. (default: 0)}
 
