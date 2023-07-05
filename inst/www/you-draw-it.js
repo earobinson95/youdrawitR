@@ -97,26 +97,26 @@ r2d3.onResize(function(width, height, options) {
 
 });
 
-function calculateDistance(user_line, line_data) {
-  let totalDistance = 0;
-  let pt_count = 0;
-
-  // Iterate over the points of user_line
-  for (let i = 0; i < user_line.length; i++) {
-    const point1 = user_line[i];
-    const correspondingPoint = line_data.find(point => point.x === point1.x);
-
-    if (correspondingPoint && correspondingPoint.y !== null) {
-      pt_count += 1
-      // Calculate the distance between the y-values of the two points
-      const distance = Math.abs(point1.y - correspondingPoint.y);
-      totalDistance += distance;
-    }
-  }
-  const averageDistance = totalDistance / pt_count;
-
-  return averageDistance;
-}
+//function calculateDistance(user_line, line_data) {
+//  let totalDistance = 0;
+//  let pt_count = 0;
+//
+//  // Iterate over the points of user_line
+//  for (let i = 0; i < user_line.length; i++) {
+//    const point1 = user_line[i];
+//    const correspondingPoint = line_data.find(point => point.x === point1.x);
+//
+//    if (correspondingPoint && correspondingPoint.y !== null) {
+//      pt_count += 1
+//      // Calculate the distance between the y-values of the two points
+//      const distance = Math.abs(point1.y - correspondingPoint.y);
+//      totalDistance += distance;
+//    }
+//  }
+//  const averageDistance = totalDistance / pt_count;
+//
+//  return averageDistance;
+//}
 
 // JSON.stringify()
 // Main function that draws current state of viz
@@ -223,8 +223,8 @@ function start_drawer(state, reset = true){
       if(state.show_finished){
         draw_finished_line(state, scales, state.draw_start);
       }
-      const distance = calculateDistance(svg.select("path.user_line").datum(), state.line_data).toFixed(4);
-      console.log('Average distance between the drawn line and actual line: '+ distance);
+//      const distance = calculateDistance(svg.select("path.user_line").datum(), state.line_data).toFixed(4);
+//      console.log('Average distance between the drawn line and actual line: '+ distance);
       
       
       // Convert the completedLine to JSON

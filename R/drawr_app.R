@@ -8,10 +8,14 @@
 #'
 #' @export
 #' 
-#' @importFrom shiny shinyApp navbarPage tabPanel tags fluidRow column helpText h4 br actionButton observeEvent eventReactive observe reactive div showModal modalDialog textInput fileInput radioButtons conditionalPanel sliderInput tagList modalButton removeModal checkboxInput reactiveVal
+#' @importFrom shiny shinyApp navbarPage tabPanel tags fluidRow column helpText h4 br actionButton observeEvent eventReactive observe reactive div showModal modalDialog textInput fileInput radioButtons conditionalPanel sliderInput tagList modalButton removeModal checkboxInput reactiveVal p downloadButton downloadHandler
 #' @importFrom stats runif
-#' @importFrom utils read.csv read.table
+#' @importFrom utils read.csv read.table write.csv
 #' @importFrom readxl read_excel
+#' @importFrom DT dataTableOutput renderDataTable datatable
+#' @importFrom r2d3 d3Output renderD3 
+#' @importFrom shinyjs useShinyjs hidden show
+#' @importFrom jsonlite fromJSON
 drawr_app <- function(drawr_output = NULL) {
   ui <- navbarPage(
     "Can 'You Draw It'?",
@@ -22,7 +26,7 @@ drawr_app <- function(drawr_output = NULL) {
         column(
           width = 12,
           div(style = "position: relative;",
-              r2d3::d3Output("shinydrawr", height = "500px"),
+              d3Output("shinydrawr", height = "500px"),
               actionButton("inputData", "Input Data", 
                            style = "position: absolute; top: 10px; left: 600px;"),
               actionButton("reset", "Reset", 
@@ -34,6 +38,18 @@ drawr_app <- function(drawr_output = NULL) {
                   label = "Show/Hide Tooltip",
                   value = TRUE
                 )
+              ),
+              useShinyjs(),
+              hidden(
+              div(
+                id = "recordedDataSection",
+                style = "position: absolute; top: 15px; left: 750px;",
+                p("Recorded Data:"),
+                div(
+                  style = "position: absolute; top: -10px; left: 350px;",
+                  downloadButton("saveData", "Save Data")),
+                dataTableOutput("drawndata", width = "90%")
+              )
               )
           )
         )
@@ -67,17 +83,26 @@ drawr_app <- function(drawr_output = NULL) {
         session$sendCustomMessage("resetAction", "true")
       })
       
+      observeEvent(input$completedLineData, {
+        show("recordedDataSection")
+      })
+      
       user_line_data <- eventReactive(input$completedLineData, {
         completedLineData <- input$completedLineData
-        
         # Convert the JSON data to a list or data frame
         jsonlite::fromJSON(completedLineData)
       })
       
-      observe({
-        # Access the value of user_line_data() within the observe block
-        print(user_line_data())
+      output$drawndata <- renderDataTable({
+        DT::datatable(user_line_data(), rownames = FALSE)
       })
+      
+      output$saveData <- downloadHandler(
+        filename = "data.csv",
+        content = function(file) {
+          write.csv(user_line_data(), file, row.names = FALSE)
+        }
+      )
       
       observeEvent(input$inputData, {
         showModal(
@@ -196,6 +221,10 @@ drawr_app <- function(drawr_output = NULL) {
         session$sendCustomMessage("resetAction", "true")
       })
       
+      observeEvent(input$completedLineData, {
+        show("recordedDataSection")
+      })
+      
       user_line_data <- eventReactive(input$completedLineData, {
         completedLineData <- input$completedLineData
         
@@ -203,10 +232,16 @@ drawr_app <- function(drawr_output = NULL) {
         jsonlite::fromJSON(completedLineData)
       })
       
-      observe({
-        # Access the value of user_line_data() within the observe block
-        print(user_line_data())
+      output$drawndata <- renderDataTable({
+        DT::datatable(user_line_data(), rownames = FALSE)
       })
+      
+      output$saveData <- downloadHandler(
+        filename = "data.csv",
+        content = function(file) {
+          write.csv(user_line_data(), file, row.names = FALSE)
+        }
+      )
       
       observeEvent(input$inputData, {
         showModal(

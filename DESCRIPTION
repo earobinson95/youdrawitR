@@ -17,7 +17,9 @@ Imports:
     stats,
     tibble,
     shiny,
-    readxl
+    readxl,
+    DT,
+    shinyjs
 Suggests: 
     globals,
     shinytest,
