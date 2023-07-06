@@ -26,7 +26,7 @@ drawr_app <- function(drawr_output = NULL) {
         column(
           width = 12,
           div(style = "position: relative;",
-              d3Output("shinydrawr", height = "500px"),
+              d3Output("shinydrawr", height = "500px", width = "800px"),
               actionButton("inputData", "Input Data", 
                            style = "position: absolute; top: 10px; left: 600px;"),
               actionButton("reset", "Reset", 
