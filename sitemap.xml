@@ -10,18 +10,30 @@
     <loc>https://earobinson95.github.io/youdrawitR/LICENSE.html</loc>
   </url>
   <url>
+    <loc>https://earobinson95.github.io/youdrawitR/articles/drawr-example.html</loc>
+  </url>
+  <url>
+    <loc>https://earobinson95.github.io/youdrawitR/articles/index.html</loc>
+  </url>
+  <url>
     <loc>https://earobinson95.github.io/youdrawitR/authors.html</loc>
   </url>
   <url>
     <loc>https://earobinson95.github.io/youdrawitR/index.html</loc>
   </url>
   <url>
-    <loc>https://earobinson95.github.io/youdrawitR/reference/hello.html</loc>
+    <loc>https://earobinson95.github.io/youdrawitR/reference/customDataGen.html</loc>
+  </url>
+  <url>
+    <loc>https://earobinson95.github.io/youdrawitR/reference/drawr.html</loc>
+  </url>
+  <url>
+    <loc>https://earobinson95.github.io/youdrawitR/reference/drawr_app.html</loc>
   </url>
   <url>
     <loc>https://earobinson95.github.io/youdrawitR/reference/index.html</loc>
   </url>
   <url>
-    <loc>https://earobinson95.github.io/youdrawitR/reference/say_hello.html</loc>
+    <loc>https://earobinson95.github.io/youdrawitR/reference/linearDataGen.html</loc>
   </url>
 </urlset>
