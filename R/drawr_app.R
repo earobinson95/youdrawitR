@@ -1,6 +1,6 @@
 #' Create a Shiny app for drawing
 #'
-#' \code{shinyApp()} creates a Shiny app for drawing an interactive you-draw-it plot for interactive testing of graphics
+#' \code{drawr_app()} creates a Shiny app for drawing an interactive you-draw-it plot for interactive testing of graphics
 #'
 #' @param drawr_output The output from the \code{drawr()} function to render the drawing interface. If null will auto randomly generate data using \code{linearDataGen()} function. (Default: NULL) 
 #'
