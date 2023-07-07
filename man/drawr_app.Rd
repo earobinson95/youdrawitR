@@ -13,5 +13,5 @@ drawr_app(drawr_output = NULL)
 A Shiny app object.
 }
 \description{
-\code{shinyApp()} creates a Shiny app for drawing an interactive you-draw-it plot for interactive testing of graphics
+\code{drawr_app()} creates a Shiny app for drawing an interactive you-draw-it plot for interactive testing of graphics
 }

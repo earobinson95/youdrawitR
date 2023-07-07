@@ -1,0 +1,19 @@
+---
+title: "drawr-example"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r}
+library(youdrawitR)
+data <- linearDataGen(y_xbar = 3.9,
+                      slope  = 0.8,
+                      sigma  = 2.8,
+                      x_min   = 0,
+                      x_max   = 20,
+                      N       = 40,
+                      x_by    = 0.25)
+
+drawr(data, show_tooltip = TRUE)
+```

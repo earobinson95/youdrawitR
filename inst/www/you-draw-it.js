@@ -1,4 +1,4 @@
-// !preview r2d3 data = data, options = list(free_draw = TRUE, draw_start = 1, points_end = 20, pin_start = TRUE, x_range = NULL, subtitle = "Subtitle Test", y_range = NULL, line_style = list(strokeWidth = 4), data_line_color = 'steelblue', drawn_line_color = 'steelblue', show_finished = TRUE, linear = 'true', title = "Test", x_lab = "x axis test", y_lab = "y axis test", points = "full", aspect_ratio = 1, x_by = 0, log_base = 10, show_tooltip = TRUE, conf_int = TRUE, run_app = FALSE), dependencies = c('d3-jetpack'), d3_version = "5", viewer = "browser"
+// !preview r2d3 data = data, options = options, dependencies = c('d3-jetpack'), d3_version = "5", viewer = "browser"
 
 // Make sure R has the following loaded
 // library(tibble)
@@ -90,33 +90,33 @@ r2d3.onRender(function(data, svg, width, height, options) {
 // redraws plot as you resize your browser window 
 // (box has changed size that we did not do on code end)
 r2d3.onResize(function(width, height, options) {
-  state.w = height*state.options.aspect_ratio - margin.left - margin.right;
+  state.w = height*state.options.aspect_ratio;
   state.h = height - margin.top - margin.bottom;
-  
-  start_drawer(state, reset = false);
+
+//  start_drawer(state, reset = false);
 
 });
 
-function calculateDistance(user_line, line_data) {
-  let totalDistance = 0;
-  let pt_count = 0;
-
-  // Iterate over the points of user_line
-  for (let i = 0; i < user_line.length; i++) {
-    const point1 = user_line[i];
-    const correspondingPoint = line_data.find(point => point.x === point1.x);
-
-    if (correspondingPoint && correspondingPoint.y !== null) {
-      pt_count += 1
-      // Calculate the distance between the y-values of the two points
-      const distance = Math.abs(point1.y - correspondingPoint.y);
-      totalDistance += distance;
-    }
-  }
-  const averageDistance = totalDistance / pt_count;
-
-  return averageDistance;
-}
+//function calculateDistance(user_line, line_data) {
+//  let totalDistance = 0;
+//  let pt_count = 0;
+//
+//  // Iterate over the points of user_line
+//  for (let i = 0; i < user_line.length; i++) {
+//    const point1 = user_line[i];
+//    const correspondingPoint = line_data.find(point => point.x === point1.x);
+//
+//    if (correspondingPoint && correspondingPoint.y !== null) {
+//      pt_count += 1
+//      // Calculate the distance between the y-values of the two points
+//      const distance = Math.abs(point1.y - correspondingPoint.y);
+//      totalDistance += distance;
+//    }
+//  }
+//  const averageDistance = totalDistance / pt_count;
+//
+//  return averageDistance;
+//}
 
 // JSON.stringify()
 // Main function that draws current state of viz
@@ -223,8 +223,8 @@ function start_drawer(state, reset = true){
       if(state.show_finished){
         draw_finished_line(state, scales, state.draw_start);
       }
-      const distance = calculateDistance(svg.select("path.user_line").datum(), state.line_data).toFixed(4);
-      console.log('Average distance between the drawn line and actual line: '+ distance);
+//      const distance = calculateDistance(svg.select("path.user_line").datum(), state.line_data).toFixed(4);
+//      console.log('Average distance between the drawn line and actual line: '+ distance);
       
       
       // Convert the completedLine to JSON
@@ -392,11 +392,11 @@ function start_drawer(state, reset = true){
 
   function setup_drawable_points({line_data, free_draw, draw_start}){
     if (free_draw) {
-      if (state.x_range[0] != line_data[0].x) {
+      if (state.x_range && (state.x_range[0] < line_data[0].x)) {
         line_data.unshift({ x: state.x_range[0], y: null });
       }
-      if (state.x_range[1] != line_data[line_data.length - 1].x) {
-        line_data.push({ x: state.x_range[1], y: null });
+      if (state.x_range && state.x_range[1] > line_data[line_data.length - 1].x) {
+       line_data.push({ x: state.x_range[1], y: null });
       }
       
       // Get range of x values from first and last point
