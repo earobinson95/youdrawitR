@@ -1,12 +1,24 @@
 ---
 title: "drawr-example"
-output:
-  html_document: default
-  pdf_document: default
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{drawr-example}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
-```{r}
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
 library(youdrawitR)
+```
+
+```{r}
 data <- linearDataGen(y_xbar = 3.9,
                       slope  = 0.8,
                       sigma  = 2.8,
@@ -17,3 +29,4 @@ data <- linearDataGen(y_xbar = 3.9,
 
 drawr(data, show_tooltip = TRUE)
 ```
+

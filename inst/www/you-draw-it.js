@@ -81,7 +81,48 @@ r2d3.onRender(function(data, svg, width, height, options) {
   state.w = height*options.aspect_ratio;
 
   start_drawer(state);
-
+  
+  if (!state.run_app) {
+    const button = svg.append("g")
+      .attr("class", "button")
+      .style("cursor", "pointer")
+      .attr("transform", `translate(${state.w + margin.right + margin.left}, ${margin.top})`)
+      .on("click", handleClick)
+    
+    button.append("rect")
+      .attr("x", 0)
+      .attr("y", 0)
+      .attr("width", 80)
+      .attr("height", 30)
+      .attr("rx", 5)
+      .attr("ry", 5)
+      .style("fill", "#ECECEC")
+      .style("stroke", "black")
+      .style("stroke-width", 2);
+      
+    button.on("mouseover", function() {
+    d3.select(this).select("rect")
+      .style("fill", "darkgray");
+  })
+  .on("mouseout", function() {
+    d3.select(this).select("rect")
+      .style("fill", "#ECECEC");
+  });
+    
+    button.append("text")
+      .attr("x", 40)
+      .attr("y", 15)
+      .attr("text-anchor", "middle")
+      .attr("alignment-baseline", "middle")
+      .attr("fill", "black")
+      .attr("font-size", 18)
+      .text("Reset");
+    
+    // Click event handler
+    function handleClick() {
+      start_drawer(state, reset = true)
+    }
+  }
 });
 
 // An explicit resize handler
@@ -139,21 +180,6 @@ function start_drawer(state, reset = true){
   }
   
   if (!state.run_app) {
-    d3.select("body")
-    .append("div")
-    .style("position", "relative")
-    .append("button")
-    .text("Reset")
-    .style("position", "absolute")
-    .style("top", `${margin.top}px`)
-    .style("left", `${state.w + margin.left + 10}px`)
-    .style("width", "80")
-    .style("height", "25")
-      .on("click", function() {
-      start_drawer(state, reset = true)
-    });
-    
-    
     d3.select("body")
       .append("div")
       .style("position", "relative")
