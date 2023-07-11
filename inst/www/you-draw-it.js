@@ -83,24 +83,25 @@ r2d3.onRender(function(data, svg, width, height, options) {
   start_drawer(state);
   
   if (!state.run_app) {
-    const button = svg.append("g")
+    // add reset and download data buttons
+    const resetButton = svg.append("g")
       .attr("class", "button")
       .style("cursor", "pointer")
-      .attr("transform", `translate(${state.w + margin.right + margin.left}, ${margin.top})`)
+      .attr("transform", `translate(${state.w + margin.right + margin.left}, ${margin.top + 35})`)
       .on("click", handleClick)
     
-    button.append("rect")
+    resetButton.append("rect")
       .attr("x", 0)
       .attr("y", 0)
-      .attr("width", 80)
-      .attr("height", 30)
+      .attr("width", 60)
+      .attr("height", 25)
       .attr("rx", 5)
       .attr("ry", 5)
       .style("fill", "#ECECEC")
       .style("stroke", "black")
       .style("stroke-width", 2);
       
-    button.on("mouseover", function() {
+    resetButton.on("mouseover", function() {
     d3.select(this).select("rect")
       .style("fill", "darkgray");
   })
@@ -109,19 +110,65 @@ r2d3.onRender(function(data, svg, width, height, options) {
       .style("fill", "#ECECEC");
   });
     
-    button.append("text")
-      .attr("x", 40)
+    resetButton.append("text")
+      .attr("x", 30)
       .attr("y", 15)
       .attr("text-anchor", "middle")
       .attr("alignment-baseline", "middle")
       .attr("fill", "black")
-      .attr("font-size", 18)
-      .text("Reset");
+      .attr("font-size", 14)
+      .text("Reset")
     
     // Click event handler
     function handleClick() {
       start_drawer(state, reset = true)
     }
+  
+  const downloadButton = svg.append("g")
+    .attr("class", "button")
+    .style("cursor", "pointer")
+    .attr("transform", 
+      `translate(${state.w + margin.right + margin.left}, ${margin.top})`)
+    .on("click", handleDownloadClick);
+
+  downloadButton.append("rect")
+    .attr("x", 0)
+    .attr("y", 0)
+    .attr("width", 110)
+    .attr("height", 25)
+    .attr("rx", 5)
+    .attr("ry", 5)
+    .style("fill", "#ECECEC")
+    .style("stroke", "black")
+    .style("stroke-width", 2)
+    
+  downloadButton.on("mouseover", function() {
+    d3.select(this).select("rect")
+      .style("fill", "darkgray");
+  })
+  .on("mouseout", function() {
+    d3.select(this).select("rect")
+      .style("fill", "#ECECEC");
+  });
+  
+  downloadButton.append("text")
+    .attr("x", 55)
+    .attr("y", 12.5)
+    .attr("text-anchor", "middle")
+    .attr("alignment-baseline", "middle")
+    .attr("fill", "black")
+    .attr("font-size", 14)
+    .text("Download Data");
+  
+  function handleDownloadClick() {
+    var drawn_line = svg.select("path.user_line").datum();
+    var jsonData = JSON.stringify(drawn_line);
+    var bb = new Blob([jsonData], { type: 'text/plain' });
+    var a = document.createElement('a');
+    a.download = 'draw_line_data.txt';
+    a.href = window.URL.createObjectURL(bb);
+    a.click();
+  }
   }
 });
 
@@ -177,31 +224,6 @@ function start_drawer(state, reset = true){
     // start with the svg object provided by r2d3
     // multiassign where setup_drawable_points is grabbing the parameters it needs from state: data, freedraw and draw_start
     state.drawable_points = setup_drawable_points(state);
-  }
-  
-  if (!state.run_app) {
-    d3.select("body")
-      .append("div")
-      .style("position", "relative")
-      .append("button")
-      .text("Download Drawn Data")
-      .style("position", "absolute")
-      .style("bottom", `${-margin.bottom}px`)
-      .style("left", `${state.w + margin.left + 10}px`)
-      .style("width", "150")
-      .style("height", "25")
-      .on("click", function() {
-        var drawn_line = svg.select("path.user_line").datum();
-        
-        // Convert the completedLine to JSON
-        var jsonData = JSON.stringify(drawn_line);
-        
-        var bb = new Blob([jsonData ], { type: 'text/plain' });
-        var a = document.createElement('a');
-        a.download = 'draw_line_data.txt';
-        a.href = window.URL.createObjectURL(bb);
-        a.click();
-    });
   }
 
   if(typeof Shiny !== 'undefined') {

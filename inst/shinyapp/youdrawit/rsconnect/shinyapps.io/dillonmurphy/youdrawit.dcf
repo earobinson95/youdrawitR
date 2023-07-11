@@ -1,0 +1,13 @@
+name: youdrawit
+title: youdrawit
+username:
+account: dillonmurphy
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 9437469
+bundleId: 7442235
+url: https://dillonmurphy.shinyapps.io/youdrawit/
+when: 1689039767.93932
+lastSyncTime: 1689039767.93934
+asMultiple: FALSE
+asStatic: FALSE

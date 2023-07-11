@@ -41,15 +41,18 @@ drawr_app <- function(drawr_output = NULL) {
               ),
               useShinyjs(),
               hidden(
-              div(
-                id = "recordedDataSection",
-                style = "position: absolute; top: 15px; left: 750px;",
-                p("Recorded Data:"),
                 div(
-                  style = "position: absolute; top: -10px; left: 350px;",
-                  downloadButton("saveData", "Save Data")),
-                dataTableOutput("drawndata", width = "90%")
-              )
+                  id = "recordedDataSection",
+                  style = "position: absolute; top: 15px; left: 750px;",
+                  p("Recorded Data:"),
+                  div(
+                    style = "position: absolute; top: -10px; right: 10px;",
+                    downloadButton("saveData", "Save Data")),
+                  div(
+                    style = "min-width: 300px; width: 95%;",
+                    dataTableOutput("drawndata")
+                  )
+                )
               )
           )
         )
