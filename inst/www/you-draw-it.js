@@ -232,7 +232,104 @@ function start_drawer(state, reset = true){
     });
   }
 
+  // Press button to be able to draw more lines
+  var lineGen, path, data = [];
+  var mousedown = false;
+  var isDrawing = false;
+  var draw_watcher = null;
   
+  function newLine() {
+    if (isDrawing) {
+      // Stop drawing and remove new draw watcher
+      isDrawing = false;
+      buttonText.text("Draw Line");
+      draw_watcher.remove();
+  
+      // Reattach the original event handlers
+      svg.select('rect.drag_watcher').call(
+        d3.drag()
+        .on("drag", on_drag)
+        .on("end", on_end)
+      );
+  
+      return;
+    }
+  
+    // Start drawing and create new draw watcher
+    isDrawing = true;
+    buttonText.text("Stop Drawing");
+    
+    // Detach the original event handlers
+    svg.select('rect.drag_watcher').on(".drag", null);
+  
+    lineGen = d3.line()
+      .x(function (d) { return d.x; })
+      .y(function (d) { return d.y; });
+  
+    path = svg.append('path')
+      .attr('stroke', 'black')
+      .attr('fill', 'none');
+  
+    data = [];  // clear data for new line
+  
+    draw_watcher = svg.append('rect')
+      .attr('class', 'draw_watcher')
+      .attr('height', scales.y.range()[0])
+      .attr('width', scales.x.range()[1])
+      .attr('fill', 'grey')
+      .attr('fill-opacity', 0)
+      .call(
+        d3.drag()
+        .on("start", function() {
+          mousedown = true;
+          var coords = d3.mouse(this);
+          data.push({ x: coords[0], y: coords[1] });
+          path.attr('d', lineGen(data));
+        })
+        .on("drag", function() {
+          var coords = d3.mouse(this);
+          data.push({ x: coords[0], y: coords[1] });
+          path.attr('d', lineGen(data));
+        })
+        .on("end", function() {
+          mousedown = false;
+        })
+      );
+  }
+  const button = svg.append("g")
+    .attr("class", "button")
+    .style("cursor", "pointer")
+    .attr("transform", `translate(${state.w + margin.right + margin.left}, ${margin.top + 75})`)
+    .on("click", newLine);
+  
+  button.append("rect")
+    .attr("x", 0)
+    .attr("y", 0)
+    .attr("width", 60)
+    .attr("height", 25)
+    .attr("rx", 5)
+    .attr("ry", 5)
+    .style("fill", "#ECECEC")
+    .style("stroke", "black")
+    .style("stroke-width", 2);
+  
+  button.on("mouseover", function() {
+    d3.select(this).select("rect")
+      .style("fill", "darkgray");
+  })
+  .on("mouseout", function() {
+    d3.select(this).select("rect")
+      .style("fill", "#ECECEC");
+  });
+  
+  var buttonText = button.append("text")
+    .attr("x", 30)
+    .attr("y", 15)
+    .attr("text-anchor", "middle")
+    .attr("alignment-baseline", "middle")
+    .attr("fill", "black")
+    .attr("font-size", 14)
+    .text("Draw Line");
   
   // if we have points, we draw user's line.
   draw_user_line(state, scales);

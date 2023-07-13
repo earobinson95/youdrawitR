@@ -75,13 +75,13 @@ function(input, output, session) {
               # Add tooltips to the text input fields
               tags$script(HTML("
                 $('#xColumn').tooltip({
-                  title: 'Leave empty if there is no x column name.',
+                  title: 'Optional if no x colname. (Will use 1st column in dataset)',
                   trigger: 'focus',
                   placement: 'top',
                 });
               
                 $('#yColumn').tooltip({
-                  title: 'Leave empty if there is no y column name.',
+                  title: 'Optional if no y colname. (Will use 2nd column in dataset)',
                   trigger: 'focus',
                   placement: 'top'
                 });
@@ -106,7 +106,8 @@ function(input, output, session) {
               ),
               conditionalPanel(
                 condition = "input.dataInputOption == 'Text'",
-                textAreaInput("dataInput", "Enter Data Here", rows = 5, placeholder = "Copy and paste data here")
+                textAreaInput("dataInput", "Enter Data Here", rows = 5, 
+                              placeholder = 'Copy and paste data here \n(" " , ; | or tab delimited data accepted)\n\nExample:\n1,2\n3,4\n5,6\n7,8')
               )
             ),
             column(
@@ -117,7 +118,14 @@ function(input, output, session) {
               ),
               conditionalPanel(
                 condition = "input.regressionType == 'Logistic'",
-                textInput("successLevel", "Success Level:")
+                textInput("successLevel", "Success Level:"),
+                tags$script(HTML("
+                $('#successLevel').tooltip({
+                  title: 'Y must be a binary categorical variable. (If empty success level is first category alphabetically)',
+                  trigger: 'focus',
+                  placement: 'top',
+                });
+              "))
               ),
               conditionalPanel(
                 condition = "input.regressionType == 'Loess'",
@@ -147,33 +155,55 @@ function(input, output, session) {
       if (input$dataInputOption == "Upload") {
         if (!is.null(input$dataFile$datapath)) {
           file_ext <- tools::file_ext(input$dataFile$name)
-          dataInput <- switch(file_ext,
-                              "csv" = read.csv(input$dataFile$datapath),
-                              "tsv" = read.table(input$dataFile$datapath, sep = "\t"),
-                              "xls" = readxl::read_excel(input$dataFile$datapath),
-                              "xlsx" = readxl::read_excel(input$dataFile$datapath),
-                              # Add more file types and their corresponding read functions as needed
-                              stop("Unsupported file type.")
-          )
+          if (file_ext != "txt") {
+            dataInput <- switch(file_ext,
+                                  "csv" = read.csv(input$dataFile$datapath, header = !is.null(colnames)),
+                                  "tsv" = read.table(input$dataFile$datapath, sep = "\t", header = !is.null(colnames), fill = TRUE),
+                                  "xls" = readxl::read_excel(input$dataFile$datapath, col_names = !is.null(colnames)),
+                                  "xlsx" = readxl::read_excel(input$dataFile$datapath, col_names = !is.null(colnames)),
+                                  # Add more file types and their corresponding read functions as needed
+                                  stop("Unsupported file type.")
+              )
+          }
+          else {
+            # Set the delimiter based on user input (default to space)
+            if (grepl("\t", input$dataInput)) {
+              separator <- "\t"
+            } else if (grepl(";", input$dataInput)) {
+              separator <- ";"
+            } else if (grepl(":", input$dataInput)) {
+              separator <- ":"
+            } else if (grepl("\\|", input$dataInput)) {
+              separator <- "|"
+            } else {
+              separator <- " "
+            }
+            dataInput <- read.table(input$dataFile$datapath, header = !is.null(colnames), sep = separator, fill = TRUE)
+            print(dataInput)
+          }
         } else {
+          stop("No file selected.")
+        } 
+        } else {
+          if (is.null(input$dataInput) || input$dataInput == "") {
+            stop("No data entered.")
+          }
+          # Set the delimiter based on user input (default to space)
+          if (grepl("\t", input$dataInput)) {
+            separator <- "\t"
+          } else if (grepl(";", input$dataInput)) {
+            separator <- ";"
+          } else if (grepl(":", input$dataInput)) {
+            separator <- ":"
+          } else if (grepl("\\|", input$dataInput)) {
+            separator <- "|"
+          } else {
+            separator <- " "
+          }
+          
           # Use the text entered in the text area input
-          dataInput <- read.table(text = input$dataInput, header = TRUE)
+          dataInput <- read.table(text = input$dataInput, header = !is.null(colnames), sep = separator, fill = TRUE)
         }
-      }
-      else {
-        if (is.null(input$dataInput) || input$dataInput == "") {
-          stop("No data entered.")
-        }
-        # Set the delimiter based on user input (default to space)
-        delimiter <- ifelse(grepl(",", input$dataInput), ",", ifelse(grepl("\t", input$dataInput), "\t", " "))
-        if (!is.null(colnames)) {
-          dataInput <- read.table(text = input$dataInput, header = TRUE, sep = delimiter)
-        }
-        else {
-          dataInput <- read.table(text = input$dataInput, header = FALSE, sep = delimiter)
-        }
-      }
-      
       # Get the selected regression type
       regression_type <- input$regressionType
       if (!is.null(colnames)) {
@@ -181,7 +211,12 @@ function(input, output, session) {
           data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, degree = input$degree)
         }
         else if (regression_type == "Logistic") {
-          data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, success_level = input$successLevel)
+          if (!is.null(input$successLevel) && input$successLevel != "") {
+            data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, success_level = input$successLevel)
+          }
+          else {
+            data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type)
+          }
         }
         else if (regression_type == "Loess") {
           data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, degree = input$degree, span = input$span)
@@ -195,7 +230,12 @@ function(input, output, session) {
           data <- customDataGen(dataInput, regression_type = regression_type, degree = input$degree)
         }
         else if (regression_type == "Logistic") {
-          data <- customDataGen(dataInput, regression_type = regression_type, success_level = input$successLevel)
+          if (!is.null(input$successLevel) && input$successLevel != "") {
+            data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, success_level = input$successLevel)
+          }
+          else {
+            data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type)
+          }
         }
         else if (regression_type == "Loess") {
           data <- customDataGen(dataInput, regression_type = regression_type, degree = input$degree, span = input$span)
