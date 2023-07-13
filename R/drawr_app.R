@@ -8,7 +8,11 @@
 #'
 #' @export
 #' 
-#' @importFrom shiny shinyApp navbarPage tabPanel tags fluidRow column helpText h4 br actionButton observeEvent eventReactive observe reactive div showModal modalDialog textInput fileInput radioButtons conditionalPanel sliderInput tagList modalButton removeModal checkboxInput reactiveVal p downloadButton downloadHandler
+#' @importFrom shiny shinyApp navbarPage tabPanel tags fluidRow column helpText h4 br 
+#' actionButton observeEvent eventReactive observe reactive div showModal modalDialog 
+#' textInput fileInput radioButtons conditionalPanel sliderInput tagList modalButton 
+#' removeModal checkboxInput reactiveVal p downloadButton downloadHandler HTML selectInput 
+#' textAreaInput
 #' @importFrom stats runif
 #' @importFrom utils read.csv read.table write.csv
 #' @importFrom readxl read_excel
@@ -114,7 +118,22 @@ drawr_app <- function(drawr_output = NULL) {
               column(
                 width = 6,
                 textInput("xColumn", "X Column Name", placeholder = "x"),
-                textInput("yColumn", "Y Column Name", placeholder = "y")
+                textInput("yColumn", "Y Column Name", placeholder = "y"),
+                
+                # Add tooltips to the text input fields
+                tags$script(HTML("
+                $('#xColumn').tooltip({
+                  title: 'Optional if no x colname. (Will use 1st column in dataset)',
+                  trigger: 'focus',
+                  placement: 'top',
+                });
+              
+                $('#yColumn').tooltip({
+                  title: 'Optional if no y colname. (Will use 2nd column in dataset)',
+                  trigger: 'focus',
+                  placement: 'top'
+                });
+              "))
               ),
               column(
                 width = 6,
@@ -126,7 +145,18 @@ drawr_app <- function(drawr_output = NULL) {
             fluidRow(
               column(
                 width = 6,
-                fileInput("dataFile", "Upload File", multiple = FALSE)
+                selectInput("dataInputOption", "Data Input Option:",
+                            choices = c("Upload", "Text"),
+                            selected = "Upload"),
+                conditionalPanel(
+                  condition = "input.dataInputOption == 'Upload'",
+                  fileInput("dataFile", "Upload File", multiple = FALSE)
+                ),
+                conditionalPanel(
+                  condition = "input.dataInputOption == 'Text'",
+                  textAreaInput("dataInput", "Enter Data Here", rows = 5, 
+                                placeholder = 'Copy and paste data here \n(" " , ; | or tab delimited data accepted)\n\nExample:\n1,2\n3,4\n5,6\n7,8')
+                )
               ),
               column(
                 width = 6,
@@ -136,7 +166,14 @@ drawr_app <- function(drawr_output = NULL) {
                 ),
                 conditionalPanel(
                   condition = "input.regressionType == 'Logistic'",
-                  textInput("successLevel", "Success Level:")
+                  textInput("successLevel", "Success Level:"),
+                  tags$script(HTML("
+                  $('#successLevel').tooltip({
+                    title: 'Y must be a binary categorical variable. (If empty success level is first category alphabetically)',
+                    trigger: 'focus',
+                    placement: 'top',
+                  });
+                "))
                 ),
                 conditionalPanel(
                   condition = "input.regressionType == 'Loess'",
@@ -157,37 +194,103 @@ drawr_app <- function(drawr_output = NULL) {
       })
       
       observeEvent(input$submitData, {
-        if (!is.null(input$dataFile$datapath)) {
-          file_ext <- tools::file_ext(input$dataFile$name)
-          dataInput <- switch(file_ext,
-                              "csv" = read.csv(input$dataFile$datapath),
-                              "tsv" = read.table(input$dataFile$datapath, sep = "\t"),
-                              "xls" = readxl::read_excel(input$dataFile$datapath),
-                              "xlsx" = readxl::read_excel(input$dataFile$datapath),
-                              # Add more file types and their corresponding read functions as needed
-                              stop("Unsupported file type.")
-          )
+        # Rename the columns based on user input or set to NULL if no input
+        if (is.null(input$xColumn) || input$xColumn == "" || is.null(input$yColumn) || input$yColumn == "") {
+          colnames <- NULL
         } else {
-          # Use the text entered in the text area input
-          dataInput <- read.table(text = input$dataInput, header = TRUE)
+          colnames <- c(input$xColumn, input$yColumn)
         }
-        # Rename the columns based on user input
-        colnames <- c(input$xColumn, input$yColumn)
+        if (input$dataInputOption == "Upload") {
+          if (!is.null(input$dataFile$datapath)) {
+            file_ext <- tools::file_ext(input$dataFile$name)
+            if (file_ext != "txt") {
+              dataInput <- switch(file_ext,
+                                  "csv" = read.csv(input$dataFile$datapath, header = !is.null(colnames)),
+                                  "tsv" = read.table(input$dataFile$datapath, sep = "\t", header = !is.null(colnames), fill = TRUE),
+                                  "xls" = readxl::read_excel(input$dataFile$datapath, col_names = !is.null(colnames)),
+                                  "xlsx" = readxl::read_excel(input$dataFile$datapath, col_names = !is.null(colnames)),
+                                  # Add more file types and their corresponding read functions as needed
+                                  stop("Unsupported file type.")
+              )
+            }
+            else {
+              # Set the delimiter based on user input (default to space)
+              if (grepl("\t", input$dataInput)) {
+                separator <- "\t"
+              } else if (grepl(";", input$dataInput)) {
+                separator <- ";"
+              } else if (grepl(":", input$dataInput)) {
+                separator <- ":"
+              } else if (grepl("\\|", input$dataInput)) {
+                separator <- "|"
+              } else {
+                separator <- " "
+              }
+              dataInput <- read.table(input$dataFile$datapath, header = !is.null(colnames), sep = separator, fill = TRUE)
+            }
+          } else {
+            stop("No file selected.")
+          } 
+        } else {
+          if (is.null(input$dataInput) || input$dataInput == "") {
+            stop("No data entered.")
+          }
+          # Set the delimiter based on user input (default to space)
+          if (grepl("\t", input$dataInput)) {
+            separator <- "\t"
+          } else if (grepl(";", input$dataInput)) {
+            separator <- ";"
+          } else if (grepl(":", input$dataInput)) {
+            separator <- ":"
+          } else if (grepl("\\|", input$dataInput)) {
+            separator <- "|"
+          } else {
+            separator <- " "
+          }
+          
+          # Use the text entered in the text area input
+          dataInput <- read.table(text = input$dataInput, header = !is.null(colnames), sep = separator, fill = TRUE)
+        }
         
         # Get the selected regression type
         regression_type <- input$regressionType
-        
-        if (regression_type == "Polynomial") {
-          data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, degree = input$degree)
-        }
-        else if (regression_type == "Logistic") {
-          data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, success_level = input$successLevel)
-        }
-        else if (regression_type == "Loess") {
-          data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, degree = input$degree, span = input$span)
+        if (!is.null(colnames)) {
+          if (regression_type == "Polynomial") {
+            data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, degree = input$degree)
+          }
+          else if (regression_type == "Logistic") {
+            if (!is.null(input$successLevel) && input$successLevel != "") {
+              data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, success_level = input$successLevel)
+            }
+            else {
+              data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type)
+            }
+          }
+          else if (regression_type == "Loess") {
+            data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, degree = input$degree, span = input$span)
+          }
+          else {
+            data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type)
+          }
         }
         else {
-          data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type)
+          if (regression_type == "Polynomial") {
+            data <- customDataGen(dataInput, regression_type = regression_type, degree = input$degree)
+          }
+          else if (regression_type == "Logistic") {
+            if (!is.null(input$successLevel) && input$successLevel != "") {
+              data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, success_level = input$successLevel)
+            }
+            else {
+              data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type)
+            }
+          }
+          else if (regression_type == "Loess") {
+            data <- customDataGen(dataInput, regression_type = regression_type, degree = input$degree, span = input$span)
+          }
+          else {
+            data <- customDataGen(dataInput, regression_type = regression_type)
+          }
         }
         
         # Update the drawr output with the processed data
@@ -253,7 +356,21 @@ drawr_app <- function(drawr_output = NULL) {
               column(
                 width = 6,
                 textInput("xColumn", "X Column Name", placeholder = "x"),
-                textInput("yColumn", "Y Column Name", placeholder = "y")
+                textInput("yColumn", "Y Column Name", placeholder = "y"),
+                # Add tooltips to the text input fields
+                tags$script(HTML("
+                $('#xColumn').tooltip({
+                  title: 'Optional. (Will use 1st column in dataset)',
+                  trigger: 'focus',
+                  placement: 'top',
+                });
+              
+                $('#yColumn').tooltip({
+                  title: 'Optional. (Will use 2nd column in dataset)',
+                  trigger: 'focus',
+                  placement: 'top'
+                });
+              "))
               ),
               column(
                 width = 6,
@@ -265,7 +382,18 @@ drawr_app <- function(drawr_output = NULL) {
             fluidRow(
               column(
                 width = 6,
-                fileInput("dataFile", "Upload File", multiple = FALSE)
+                selectInput("dataInputOption", "Data Input Option:",
+                            choices = c("Upload", "Text"),
+                            selected = "Upload"),
+                conditionalPanel(
+                  condition = "input.dataInputOption == 'Upload'",
+                  fileInput("dataFile", "Upload File", multiple = FALSE)
+                ),
+                conditionalPanel(
+                  condition = "input.dataInputOption == 'Text'",
+                  textAreaInput("dataInput", "Enter Data Here", rows = 5, 
+                                placeholder = 'Copy and paste data here \n(" " , ; | or tab delimited data accepted)\n\nExample:\n1,2\n3,4\n5,6\n7,8')
+                )
               ),
               column(
                 width = 6,
@@ -275,7 +403,14 @@ drawr_app <- function(drawr_output = NULL) {
                 ),
                 conditionalPanel(
                   condition = "input.regressionType == 'Logistic'",
-                  textInput("successLevel", "Success Level:")
+                  textInput("successLevel", "Success Level:"),
+                  tags$script(HTML("
+                  $('#successLevel').tooltip({
+                    title: 'Y must be a binary categorical variable. (If empty success level is first category alphabetically)',
+                    trigger: 'focus',
+                    placement: 'top',
+                  });
+                "))
                 ),
                 conditionalPanel(
                   condition = "input.regressionType == 'Loess'",
@@ -295,36 +430,104 @@ drawr_app <- function(drawr_output = NULL) {
         )
       })
       
-      
       observeEvent(input$submitData, {
-        if (!is.null(input$dataFile$datapath)) {
-          file_ext <- tools::file_ext(input$dataFile$name)
-          dataInput <- switch(file_ext,
-                              "csv" = read.csv(input$dataFile$datapath),
-                              "tsv" = read.table(input$dataFile$datapath, sep = "\t"),
-                              "xls" = readxl::read_excel(input$dataFile$datapath),
-                              "xlsx" = readxl::read_excel(input$dataFile$datapath),
-                              # Add more file types and their corresponding read functions as needed
-                              stop("Unsupported file type.")
-          )
+        # Rename the columns based on user input or set to NULL if no input
+        if (is.null(input$xColumn) || input$xColumn == "" || is.null(input$yColumn) || input$yColumn == "") {
+          colnames <- NULL
         } else {
-          # Use the text entered in the text area input
-          dataInput <- read.table(text = input$dataInput, header = TRUE)
+          colnames <- c(input$xColumn, input$yColumn)
         }
-        # Rename the columns based on user input
-        colnames <- c(input$xColumn, input$yColumn)
+        if (input$dataInputOption == "Upload") {
+          if (!is.null(input$dataFile$datapath)) {
+            file_ext <- tools::file_ext(input$dataFile$name)
+            if (file_ext != "txt") {
+              dataInput <- switch(file_ext,
+                                  "csv" = read.csv(input$dataFile$datapath, header = !is.null(colnames)),
+                                  "tsv" = read.table(input$dataFile$datapath, sep = "\t", header = !is.null(colnames), fill = TRUE),
+                                  "xls" = readxl::read_excel(input$dataFile$datapath, col_names = !is.null(colnames)),
+                                  "xlsx" = readxl::read_excel(input$dataFile$datapath, col_names = !is.null(colnames)),
+                                  # Add more file types and their corresponding read functions as needed
+                                  stop("Unsupported file type.")
+              )
+            }
+            else {
+              # Set the delimiter based on user input (default to space)
+              if (grepl("\t", input$dataInput)) {
+                separator <- "\t"
+              } else if (grepl(";", input$dataInput)) {
+                separator <- ";"
+              } else if (grepl(":", input$dataInput)) {
+                separator <- ":"
+              } else if (grepl("\\|", input$dataInput)) {
+                separator <- "|"
+              } else {
+                separator <- " "
+              }
+              dataInput <- read.table(input$dataFile$datapath, header = !is.null(colnames), sep = separator, fill = TRUE)
+            }
+          } else {
+            stop("No file selected.")
+          } 
+        } else {
+          if (is.null(input$dataInput) || input$dataInput == "") {
+            stop("No data entered.")
+          }
+          # Set the delimiter based on user input (default to space)
+          if (grepl("\t", input$dataInput)) {
+            separator <- "\t"
+          } else if (grepl(";", input$dataInput)) {
+            separator <- ";"
+          } else if (grepl(":", input$dataInput)) {
+            separator <- ":"
+          } else if (grepl("\\|", input$dataInput)) {
+            separator <- "|"
+          } else {
+            separator <- " "
+          }
+          
+          # Use the text entered in the text area input
+          dataInput <- read.table(text = input$dataInput, header = !is.null(colnames), sep = separator, fill = TRUE)
+        }
         
         # Get the selected regression type
         regression_type <- input$regressionType
-        
-        if (regression_type == "Polynomial") {
-          data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, degree = input$degree)
-        }
-        else if (regression_type == "Logistic") {
-          data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, success_level = input$successLevel)
+        if (!is.null(colnames)) {
+          if (regression_type == "Polynomial") {
+            data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, degree = input$degree)
+          }
+          else if (regression_type == "Logistic") {
+            if (!is.null(input$successLevel) && input$successLevel != "") {
+              data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, success_level = input$successLevel)
+            }
+            else {
+              data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type)
+            }
+          }
+          else if (regression_type == "Loess") {
+            data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, degree = input$degree, span = input$span)
+          }
+          else {
+            data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type)
+          }
         }
         else {
-          data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type)
+          if (regression_type == "Polynomial") {
+            data <- customDataGen(dataInput, regression_type = regression_type, degree = input$degree)
+          }
+          else if (regression_type == "Logistic") {
+            if (!is.null(input$successLevel) && input$successLevel != "") {
+              data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, success_level = input$successLevel)
+            }
+            else {
+              data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type)
+            }
+          }
+          else if (regression_type == "Loess") {
+            data <- customDataGen(dataInput, regression_type = regression_type, degree = input$degree, span = input$span)
+          }
+          else {
+            data <- customDataGen(dataInput, regression_type = regression_type)
+          }
         }
         
         # Update the drawr output with the processed data
