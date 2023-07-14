@@ -12,7 +12,7 @@
 #' actionButton observeEvent eventReactive observe reactive div showModal modalDialog 
 #' textInput fileInput radioButtons conditionalPanel sliderInput tagList modalButton 
 #' removeModal checkboxInput reactiveVal p downloadButton downloadHandler HTML selectInput 
-#' textAreaInput
+#' textAreaInput updateCheckboxInput
 #' @importFrom stats runif
 #' @importFrom utils read.csv read.table write.csv
 #' @importFrom readxl read_excel
@@ -37,6 +37,7 @@ drawr_app <- function(drawr_output = NULL) {
                            style = "position: absolute; top: 445px; left: 600px;"),
               div(
                 style = "position: absolute; top: 60px; left: 600px;",
+                checkboxInput("newLine", "New Line", value = FALSE),
                 checkboxInput(
                   inputId = "tooltipButton",
                   label = "Show/Hide Tooltip",
@@ -86,8 +87,29 @@ drawr_app <- function(drawr_output = NULL) {
         })
       }
       
+      # Add a reactive value to track whether the reset button was clicked
+      resetClicked <- reactiveVal(FALSE)
       observeEvent(input$reset, {
         session$sendCustomMessage("resetAction", "true")
+        if (input$newLine) {
+          resetClicked(TRUE)
+          updateCheckboxInput(session, "newLine", 
+                              label = "New Line", value = FALSE)
+        }
+      })
+      
+      # Observe the newLine checkbox and only send message when it's clicked
+      observeEvent(input$newLine, {
+        if (!resetClicked()) {
+          if (input$newLine) {
+            updateCheckboxInput(session, "newLine", label = "Stop Drawing", value = TRUE)
+            session$sendCustomMessage("newLine", "true")
+          } else {
+            updateCheckboxInput(session, "newLine", label = "New Line", value = FALSE)
+            session$sendCustomMessage("newLine", "false")
+          }
+        }
+        resetClicked(FALSE)  # reset the state of resetClicked after using it
       })
       
       observeEvent(input$completedLineData, {
@@ -322,9 +344,29 @@ drawr_app <- function(drawr_output = NULL) {
   else {
     server <- function(input, output, session) {
       dataSubmitted <- FALSE
+      # Add a reactive value to track whether the reset button was clicked
+      resetClicked <- reactiveVal(FALSE)
       observeEvent(input$reset, {
-        reset = "true"
         session$sendCustomMessage("resetAction", "true")
+        if (input$newLine) {
+          resetClicked(TRUE)
+          updateCheckboxInput(session, "newLine", 
+                              label = "New Line", value = FALSE)
+        }
+      })
+      
+      # Observe the newLine checkbox and only send message when it's clicked
+      observeEvent(input$newLine, {
+        if (!resetClicked()) {
+          if (input$newLine) {
+            updateCheckboxInput(session, "newLine", label = "Stop Drawing", value = TRUE)
+            session$sendCustomMessage("newLine", "true")
+          } else {
+            updateCheckboxInput(session, "newLine", label = "New Line", value = FALSE)
+            session$sendCustomMessage("newLine", "false")
+          }
+        }
+        resetClicked(FALSE)  # reset the state of resetClicked after using it
       })
       
       observeEvent(input$completedLineData, {

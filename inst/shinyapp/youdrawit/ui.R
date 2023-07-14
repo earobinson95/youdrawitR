@@ -27,8 +27,10 @@ navbarPage(
                          style = "position: absolute; top: 10px; left: 600px;"),
             actionButton("reset", "Reset", 
                          style = "position: absolute; top: 445px; left: 600px;"),
+            
             div(
               style = "position: absolute; top: 60px; left: 600px;",
+              checkboxInput("newLine", "New Line", value = FALSE),
               checkboxInput(
                 inputId = "tooltipButton",
                 label = "Show/Hide Tooltip",
