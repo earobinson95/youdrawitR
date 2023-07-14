@@ -259,6 +259,10 @@ function start_drawer(state, reset = true){
       }
       start_drawer(state, reset);
     });
+    
+    Shiny.addCustomMessageHandler('newLine', function(drawing){
+      newLine()
+    });
   }
 
   // Press button to be able to draw more lines
@@ -273,7 +277,10 @@ function start_drawer(state, reset = true){
     if (isDrawing) {
       // Stop drawing and remove new draw watcher
       isDrawing = false;
-      buttonText.text("Draw Line");
+      if (!state.run_app) {
+      buttonText.text("New Line");
+        buttonRect.transition().duration(200).style("fill", "#ECECEC");
+      }
       draw_watcher.remove();
   
       // Reattach the original event handlers
@@ -288,7 +295,10 @@ function start_drawer(state, reset = true){
   
     // Start drawing and create new draw watcher
     isDrawing = true;
-    buttonText.text("Stop Drawing");
+    if (!state.run_app) {
+      buttonText.text("Stop Drawing");
+      buttonRect.transition().duration(200).style("fill", "red");
+    }
     
     // Detach the original event handlers
     svg.select('rect.drag_watcher').on(".drag", null);
@@ -346,16 +356,18 @@ function start_drawer(state, reset = true){
       && coords[1] >= bounds.y && coords[1] <= bounds.y + bounds.height;
   }
   }
-      const button = svg.append("g")
+  
+  if (!state.run_app) {
+    const button = svg.append("g")
       .attr("class", "button")
       .style("cursor", "pointer")
       .attr("transform", `translate(${state.w + margin.right + margin.left}, ${margin.top + 75})`)
       .on("click", newLine);
     
-    button.append("rect")
+    var buttonRect = button.append("rect")
       .attr("x", 0)
       .attr("y", 0)
-      .attr("width", 60)
+      .attr("width", 80)
       .attr("height", 25)
       .attr("rx", 5)
       .attr("ry", 5)
@@ -364,24 +376,35 @@ function start_drawer(state, reset = true){
       .style("stroke-width", 2);
     
     button.on("mouseover", function() {
-      d3.select(this).select("rect")
-        .style("fill", "darkgray");
+      if (!isDrawing) {
+        d3.select(this).select("rect")
+          .style("fill", "darkgray");
+      }
+      else {
+        d3.select(this).select("rect")
+          .style("fill", "darkred");
+      }
     })
     .on("mouseout", function() {
-      d3.select(this).select("rect")
-        .style("fill", "#ECECEC");
+      if (!isDrawing) {
+        d3.select(this).select("rect")
+          .style("fill", "#ECECEC");
+      }
+            else {
+        d3.select(this).select("rect")
+          .style("fill", "red");
+      }
     });
     
     var buttonText = button.append("text")
-      .attr("x", 30)
+      .attr("x", 40)
       .attr("y", 15)
       .attr("text-anchor", "middle")
       .attr("alignment-baseline", "middle")
       .attr("fill", "black")
       .attr("font-size", 14)
-      .text("Draw Line");
-      
-  if (!state.run_app) {
+      .text("New Line");
+
     // add draw line and reset buttons
         const resetButton = svg.append("g")
       .attr("class", "button")

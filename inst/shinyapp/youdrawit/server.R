@@ -38,8 +38,29 @@ function(input, output, session) {
       })
     }
     
+    # Add a reactive value to track whether the reset button was clicked
+    resetClicked <- reactiveVal(FALSE)
     observeEvent(input$reset, {
       session$sendCustomMessage("resetAction", "true")
+      if (input$newLine) {
+        resetClicked(TRUE)
+        updateCheckboxInput(session, "newLine", 
+                            label = "New Line", value = FALSE)
+      }
+    })
+    
+    # Observe the newLine checkbox and only send message when it's clicked
+    observeEvent(input$newLine, {
+      if (!resetClicked()) {
+        if (input$newLine) {
+          updateCheckboxInput(session, "newLine", label = "Stop Drawing", value = TRUE)
+          session$sendCustomMessage("newLine", "true")
+        } else {
+          updateCheckboxInput(session, "newLine", label = "New Line", value = FALSE)
+          session$sendCustomMessage("newLine", "false")
+        }
+      }
+      resetClicked(FALSE)  # reset the state of resetClicked after using it
     })
     
     observeEvent(input$completedLineData, {
