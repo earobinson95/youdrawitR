@@ -64,7 +64,7 @@ function(input, output, session) {
     })
     
     observeEvent(input$completedLineData, {
-      show("recordedDataSection")
+      shinyjs::show("recordedDataSection")
     })
     
     user_line_data <- eventReactive(input$completedLineData, {
@@ -84,7 +84,17 @@ function(input, output, session) {
       }
     )
     
+    output$regressionTitle <- renderUI({
+      tags$h3(paste(input$regressionType, "Regression Options"), style = "font-size: 16px; margin-top: -10px;")
+    })
+    
     observeEvent(input$inputData, {
+      session$sendCustomMessage("resetAction", "true")
+      if (input$newLine) {
+        resetClicked(TRUE)
+        updateCheckboxInput(session, "newLine", 
+                            label = "New Line", value = FALSE)
+      }
       showModal(
         modalDialog(
           fluidRow(
@@ -133,6 +143,14 @@ function(input, output, session) {
             ),
             column(
               width = 6,
+              wellPanel(
+                uiOutput("regressionTitle"),
+              conditionalPanel(
+                condition = "input.regressionType == 'Linear'",
+                checkboxInput(inputId = "confInt",
+                              label = "Display 95% Confidence Interval Bounds",
+                              value = FALSE)
+              ),
               conditionalPanel(
                 condition = "input.regressionType == 'Polynomial'",
                 sliderInput("degree", "Degree:", min = 2, max = 10, value = 2)
@@ -157,12 +175,13 @@ function(input, output, session) {
                 sliderInput("span", "Span:", min = 0, max = 1, value = 0.75, step = 0.05)
               )
             )
+          )
           ),
           footer = tagList(
             actionButton("submitData", "Submit"),
             modalButton("Cancel")
           )
-        )
+      )
       )
     })
     
@@ -196,6 +215,8 @@ function(input, output, session) {
               separator <- ":"
             } else if (grepl("\\|", input$dataInput)) {
               separator <- "|"
+            } else if (grepl(",", input$dataInput)) {
+              separator <- ","
             } else {
               separator <- " "
             }
@@ -218,6 +239,8 @@ function(input, output, session) {
             separator <- ":"
           } else if (grepl("\\|", input$dataInput)) {
             separator <- "|"
+          } else if (grepl(",", input$dataInput)) {
+            separator <- ","
           } else {
             separator <- " "
           }
@@ -243,7 +266,7 @@ function(input, output, session) {
           data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, degree = input$degree, span = input$span)
         }
         else {
-          data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type)
+          data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, conf_int = input$confInt)
         }
       }
       else {
@@ -262,12 +285,17 @@ function(input, output, session) {
           data <- customDataGen(dataInput, regression_type = regression_type, degree = input$degree, span = input$span)
         }
         else {
-          data <- customDataGen(dataInput, regression_type = regression_type)
+          data <- customDataGen(dataInput, regression_type = regression_type, conf_int = input$confInt)
         }
       }
       
       # Update the drawr output with the processed data
-      output$shinydrawr <- r2d3::renderD3({ drawr(data, run_app = T) })
+      if ((regression_type == "Linear") && (input$confInt)) {
+        output$shinydrawr <- r2d3::renderD3({ drawr(data, run_app = T, conf_int = TRUE) })
+      }
+      else {
+        output$shinydrawr <- r2d3::renderD3({ drawr(data, run_app = T) })
+      }
       dataSubmitted <- TRUE
       # Close the modal dialog
       removeModal()

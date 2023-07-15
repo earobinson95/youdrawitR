@@ -133,7 +133,17 @@ drawr_app <- function(drawr_output = NULL) {
         }
       )
       
+      output$regressionTitle <- renderUI({
+        tags$h3(paste(input$regressionType, "Regression Options"), style = "font-size: 16px; margin-top: -10px;")
+      })
+      
       observeEvent(input$inputData, {
+        session$sendCustomMessage("resetAction", "true")
+        if (input$newLine) {
+          resetClicked(TRUE)
+          updateCheckboxInput(session, "newLine", 
+                              label = "New Line", value = FALSE)
+        }
         showModal(
           modalDialog(
             fluidRow(
@@ -182,10 +192,18 @@ drawr_app <- function(drawr_output = NULL) {
               ),
               column(
                 width = 6,
-                conditionalPanel(
-                  condition = "input.regressionType == 'Polynomial'",
-                  sliderInput("degree", "Degree:", min = 2, max = 10, value = 2)
-                ),
+                wellPanel(
+                  uiOutput("regressionTitle"),
+                  conditionalPanel(
+                    condition = "input.regressionType == 'Linear'",
+                    checkboxInput(inputId = "confInt",
+                                  label = "Display 95% Confidence Interval Bounds",
+                                  value = FALSE)
+                  ),
+                  conditionalPanel(
+                    condition = "input.regressionType == 'Polynomial'",
+                    sliderInput("degree", "Degree:", min = 2, max = 10, value = 2)
+                  ),
                 conditionalPanel(
                   condition = "input.regressionType == 'Logistic'",
                   textInput("successLevel", "Success Level:"),
@@ -206,6 +224,7 @@ drawr_app <- function(drawr_output = NULL) {
                   sliderInput("span", "Span:", min = 0, max = 1, value = 0.75, step = 0.05)
                 )
               )
+            )
             ),
             footer = tagList(
               actionButton("submitData", "Submit"),
@@ -216,6 +235,12 @@ drawr_app <- function(drawr_output = NULL) {
       })
       
       observeEvent(input$submitData, {
+        session$sendCustomMessage("resetAction", "true")
+        if (input$newLine) {
+          resetClicked(TRUE)
+          updateCheckboxInput(session, "newLine", 
+                              label = "New Line", value = FALSE)
+        }
         # Rename the columns based on user input or set to NULL if no input
         if (is.null(input$xColumn) || input$xColumn == "" || is.null(input$yColumn) || input$yColumn == "") {
           colnames <- NULL
@@ -245,6 +270,8 @@ drawr_app <- function(drawr_output = NULL) {
                 separator <- ":"
               } else if (grepl("\\|", input$dataInput)) {
                 separator <- "|"
+              } else if (grepl(",", input$dataInput)) {
+                separator <- ","
               } else {
                 separator <- " "
               }
@@ -266,6 +293,8 @@ drawr_app <- function(drawr_output = NULL) {
             separator <- ":"
           } else if (grepl("\\|", input$dataInput)) {
             separator <- "|"
+          } else if (grepl(",", input$dataInput)) {
+            separator <- ","
           } else {
             separator <- " "
           }
@@ -292,7 +321,7 @@ drawr_app <- function(drawr_output = NULL) {
             data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, degree = input$degree, span = input$span)
           }
           else {
-            data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type)
+            data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, conf_int = input$confInt)
           }
         }
         else {
@@ -311,12 +340,17 @@ drawr_app <- function(drawr_output = NULL) {
             data <- customDataGen(dataInput, regression_type = regression_type, degree = input$degree, span = input$span)
           }
           else {
-            data <- customDataGen(dataInput, regression_type = regression_type)
+            data <- customDataGen(dataInput, regression_type = regression_type, conf_int = input$confInt)
           }
         }
         
         # Update the drawr output with the processed data
-        output$shinydrawr <- r2d3::renderD3({ drawr(data, run_app = T) })
+        if ((regression_type == "Linear") && (input$confInt)) {
+          output$shinydrawr <- r2d3::renderD3({ drawr(data, run_app = T, conf_int = TRUE) })
+        }
+        else {
+          output$shinydrawr <- r2d3::renderD3({ drawr(data, run_app = T) })
+        }
         dataSubmitted <- TRUE
         # Close the modal dialog
         removeModal()
@@ -391,7 +425,17 @@ drawr_app <- function(drawr_output = NULL) {
         }
       )
       
+      output$regressionTitle <- renderUI({
+        tags$h3(paste(input$regressionType, "Regression Options"), style = "font-size: 16px; margin-top: -10px;")
+      })
+      
       observeEvent(input$inputData, {
+        session$sendCustomMessage("resetAction", "true")
+        if (input$newLine) {
+          resetClicked(TRUE)
+          updateCheckboxInput(session, "newLine", 
+                              label = "New Line", value = FALSE)
+        }
         showModal(
           modalDialog(
             fluidRow(
@@ -439,10 +483,18 @@ drawr_app <- function(drawr_output = NULL) {
               ),
               column(
                 width = 6,
-                conditionalPanel(
-                  condition = "input.regressionType == 'Polynomial'",
-                  sliderInput("degree", "Degree:", min = 2, max = 10, value = 2)
-                ),
+                wellPanel(
+                  uiOutput("regressionTitle"),
+                  conditionalPanel(
+                    condition = "input.regressionType == 'Linear'",
+                    checkboxInput(inputId = "confInt",
+                                  label = "Display 95% Confidence Interval Bounds",
+                                  value = FALSE)
+                  ),
+                  conditionalPanel(
+                    condition = "input.regressionType == 'Polynomial'",
+                    sliderInput("degree", "Degree:", min = 2, max = 10, value = 2)
+                  ),
                 conditionalPanel(
                   condition = "input.regressionType == 'Logistic'",
                   textInput("successLevel", "Success Level:"),
@@ -463,6 +515,7 @@ drawr_app <- function(drawr_output = NULL) {
                   sliderInput("span", "Span:", min = 0, max = 1, value = 0.75, step = 0.05)
                 )
               )
+            )
             ),
             footer = tagList(
               actionButton("submitData", "Submit"),
@@ -502,6 +555,8 @@ drawr_app <- function(drawr_output = NULL) {
                 separator <- ":"
               } else if (grepl("\\|", input$dataInput)) {
                 separator <- "|"
+              } else if (grepl(",", input$dataInput)) {
+                separator <- ","
               } else {
                 separator <- " "
               }
@@ -523,6 +578,8 @@ drawr_app <- function(drawr_output = NULL) {
             separator <- ":"
           } else if (grepl("\\|", input$dataInput)) {
             separator <- "|"
+          } else if (grepl(",", input$dataInput)) {
+            separator <- ","
           } else {
             separator <- " "
           }
@@ -549,7 +606,7 @@ drawr_app <- function(drawr_output = NULL) {
             data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, degree = input$degree, span = input$span)
           }
           else {
-            data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type)
+            data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, conf_int = input$confInt)
           }
         }
         else {
@@ -568,12 +625,17 @@ drawr_app <- function(drawr_output = NULL) {
             data <- customDataGen(dataInput, regression_type = regression_type, degree = input$degree, span = input$span)
           }
           else {
-            data <- customDataGen(dataInput, regression_type = regression_type)
+            data <- customDataGen(dataInput, regression_type = regression_type, conf_int = input$confInt)
           }
         }
         
         # Update the drawr output with the processed data
-        output$shinydrawr <- r2d3::renderD3({ drawr(data, run_app = T) })
+        if ((regression_type == "Linear") && (input$confInt)) {
+          output$shinydrawr <- r2d3::renderD3({ drawr(data, run_app = T, conf_int = TRUE) })
+        }
+        else {
+          output$shinydrawr <- r2d3::renderD3({ drawr(data, run_app = T) })
+        }
         dataSubmitted <- TRUE
         # Close the modal dialog
         removeModal()
