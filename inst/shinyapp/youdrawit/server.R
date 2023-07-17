@@ -31,16 +31,17 @@ function(input, output, session) {
           x_min = 0,
           x_max = 20,
           N = 40,
-          x_by = 0.25
+          x_by = 0.25,
+          conf_int = input$showConfInterval
         )
         
-        drawr(data, run_app = T)
+        drawr(data, run_app = T, conf_int = input$showConfInterval)
       })
     }
     
     # Add a reactive value to track whether the reset button was clicked
     resetClicked <- reactiveVal(FALSE)
-    observeEvent(input$reset, {
+    resetFunction <- reactive({
       session$sendCustomMessage("resetAction", "true")
       if (input$newLine) {
         resetClicked(TRUE)
@@ -49,6 +50,14 @@ function(input, output, session) {
       }
     })
     
+    observeEvent(input$reset, {
+      resetFunction()
+    })
+    
+    observeEvent(input$showConfInterval, {
+      resetFunction()
+    })
+
     # Observe the newLine checkbox and only send message when it's clicked
     observeEvent(input$newLine, {
       if (!resetClicked()) {
@@ -186,6 +195,7 @@ function(input, output, session) {
     })
     
     observeEvent(input$submitData, {
+      shinyjs::hide("showConfInterval")
       # Rename the columns based on user input or set to NULL if no input
       if (is.null(input$xColumn) || input$xColumn == "" || is.null(input$yColumn) || input$yColumn == "") {
         colnames <- NULL
