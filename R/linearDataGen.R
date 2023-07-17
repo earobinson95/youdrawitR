@@ -53,12 +53,12 @@ linearDataGen <-
     # Obtain least squares regression coefficients
     lm.fit <- lm(y ~ x, data = point_data)
     if (conf_int) {
-      predict_data <- data.frame(x)
+      predict_data <- data.frame(x = xVals)
       predict_data$y <- predict(lm.fit, newdata = predict_data, interval = "confidence")
       
       # Create line data with x and y values
       line_data <- tibble(data = "line_data",
-                          x = x,
+                          x = xVals,
                           y = predict_data$y[, "fit"],
                           coef = coef(lm.fit)["x"] |> as.numeric(),
                           int = coef(lm.fit)["(Intercept)"] |> as.numeric(),

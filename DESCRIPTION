@@ -15,16 +15,15 @@ Imports:
     jsonlite,
     r2d3,
     stats,
-    tibble,
-    shiny,
-    readxl,
-    DT,
-    shinyjs
+    tibble
 Suggests: 
     globals,
     knitr,
     rmarkdown,
-    shinytest,
+    shiny,
+    readxl,
+    DT,
+    shinyjs,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr

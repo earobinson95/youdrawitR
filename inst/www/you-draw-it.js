@@ -839,10 +839,8 @@ function draw_finished_line({svg, line_data, draw_start, free_draw}, scales){
     // Only draw line if there's something to draw.
   if(get_user_line_status(state) === 'unstarted'){
     finished_line.remove();
-    if (state.conf_int) {
-      lower_bound.remove();
-      upper_bound.remove();
-    }
+    lower_bound.remove();
+    upper_bound.remove();
     return;
   }
   
