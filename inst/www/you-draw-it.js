@@ -82,7 +82,7 @@ r2d3.onRender(function(data, svg, width, height, options) {
 
   start_drawer(state);
   
-  if (!state.run_app) {
+  if (!state.hide_buttons) {
     // add download data buttons
   const downloadButton = svg.append("g")
     .attr("class", "button")
@@ -230,9 +230,11 @@ function start_drawer(state, reset = true){
       // Convert the completedLine to JSON
       if(typeof Shiny !== 'undefined') {
         var jsonData = JSON.stringify(svg.select("path.user_line").datum());
+        var newlines = JSON.stringify(newLineData)
       
         // Send the data to the Shiny server
         Shiny.setInputValue("completedLineData", jsonData);
+        Shiny.setInputValue("newLineData", newlines);
       }
       
       // Send the JSON data to R using an HTTP request
@@ -253,6 +255,7 @@ function start_drawer(state, reset = true){
       // Reset paths and lineGens arrays
       paths = [];
       lineGens = [];
+      newLineData = [];
       
       if (isDrawing) {
         newLine();
@@ -266,18 +269,20 @@ function start_drawer(state, reset = true){
   }
 
   // Press button to be able to draw more lines
-  var lineGen, path, data = [];
+  var lineGen, path, data, scale_data = [];
   var mousedown = false;
   var isDrawing = false;
   var draw_watcher = null;
   var paths = [];
   var lineGens = [];
+  let newLineData = [];
   
   function newLine() {
     if (isDrawing) {
+      newLineData.push(scale_data);
       // Stop drawing and remove new draw watcher
       isDrawing = false;
-      if (!state.run_app) {
+      if (!state.hide_buttons) {
       buttonText.text("New Line");
         buttonRect.transition().duration(200).style("fill", "#ECECEC");
       }
@@ -295,7 +300,7 @@ function start_drawer(state, reset = true){
   
     // Start drawing and create new draw watcher
     isDrawing = true;
-    if (!state.run_app) {
+    if (!state.hide_buttons) {
       buttonText.text("Stop Drawing");
       buttonRect.transition().duration(200).style("fill", "red");
     }
@@ -312,12 +317,15 @@ function start_drawer(state, reset = true){
   
     path = state.svg.append('path')
       .at(conf_int_line_attrs)
-      .attr("opacity", 0.75);
+      .attr("stroke-dasharray", "7, 5")
+      .attr("opacity", 0.95);
       
     // Store the path
     paths.push(path);
   
     data = [];  // clear data for new line
+    
+    scale_data = [];
   
   draw_watcher = state.svg.append('rect')
     .attr('class', 'draw_watcher')
@@ -332,6 +340,8 @@ function start_drawer(state, reset = true){
         var coords = d3.mouse(this);
         if (!coordsInWatcher(coords)) return;
         data.push({ x: coords[0], y: coords[1] });
+        scale_data.push({ x: scales.x.invert(coords[0]), 
+                          y: scales.y.invert(coords[1]) })
         path.attr('d', lineGen(data));
       })
       .on("drag", function() {
@@ -339,6 +349,8 @@ function start_drawer(state, reset = true){
         var coords = d3.mouse(this);
         if (!coordsInWatcher(coords)) return;
         data.push({ x: coords[0], y: coords[1] });
+        scale_data.push({ x: scales.x.invert(coords[0]), 
+                  y: scales.y.invert(coords[1]) })
         path.attr('d', lineGen(data));
       })
       .on("end", function() {
@@ -357,7 +369,7 @@ function start_drawer(state, reset = true){
   }
   }
   
-  if (!state.run_app) {
+  if (!state.hide_buttons) {
     const button = svg.append("g")
       .attr("class", "button")
       .style("cursor", "pointer")
@@ -447,9 +459,10 @@ function start_drawer(state, reset = true){
       paths.forEach(function(path) {
         path.remove();
       });
-    
+      
       // Reset paths and lineGens arrays
       paths = [];
+      newLineData = [];
       lineGens = [];
       if (isDrawing) {
         newLine();

@@ -35,7 +35,7 @@ function(input, output, session) {
           conf_int = input$showConfInterval
         )
         
-        drawr(data, run_app = T, conf_int = input$showConfInterval)
+        drawr(data, hide_buttons = T, conf_int = input$showConfInterval)
       })
     }
     
@@ -74,6 +74,11 @@ function(input, output, session) {
     
     observeEvent(input$completedLineData, {
       shinyjs::show("recordedDataSection")
+      shinyjs::show("dataSelector")
+    })
+    
+    observeEvent(input$newLineData, {
+      print(jsonlite::fromJSON(input$newLineData))
     })
     
     user_line_data <- eventReactive(input$completedLineData, {
@@ -301,10 +306,10 @@ function(input, output, session) {
       
       # Update the drawr output with the processed data
       if ((regression_type == "Linear") && (input$confInt)) {
-        output$shinydrawr <- r2d3::renderD3({ drawr(data, run_app = T, conf_int = TRUE) })
+        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, conf_int = TRUE) })
       }
       else {
-        output$shinydrawr <- r2d3::renderD3({ drawr(data, run_app = T) })
+        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T) })
       }
       dataSubmitted <- TRUE
       # Close the modal dialog
