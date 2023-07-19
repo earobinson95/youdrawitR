@@ -57,7 +57,7 @@ Data can be simulated using <code><a href="linearDataGen.html">linearDataGen()</
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">drawr</span><span class="op">(</span></span>
 <span>  <span class="va">data</span>,</span>
 <span>  save_html_file_path <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  run_app <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  hide_buttons <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  conf_int <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  linear <span class="op">=</span> <span class="st">"true"</span>,</span>
 <span>  log_base <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -91,8 +91,8 @@ Data can be simulated using <code><a href="linearDataGen.html">linearDataGen()</
 <dd><p>File path to save d3 output as an html. If null will not save. Can just provide filename and will save to current working directory. (default: NULL)</p></dd>
 
 
-<dt>run_app</dt>
-<dd><p>Logical value indicating whether to run the Shiny app. Can also define as true if user would like to remove buttons. (default: FALSE)</p></dd>
+<dt>hide_buttons</dt>
+<dd><p>Logical value indicating whether to show or hide buttons. TRUE = hide, FALSE = show (default: FALSE)</p></dd>
 
 
 <dt>conf_int</dt>
