@@ -7,7 +7,7 @@
 #'
 #' @param data The data containing line data (with equation info) and point data.
 #' @param save_html_file_path File path to save d3 output as an html. If null will not save. Can just provide filename and will save to current working directory. (default: NULL)
-#' @param run_app Logical value indicating whether to run the Shiny app. Can also define as true if user would like to remove buttons. (default: FALSE)
+#' @param hide_buttons Logical value indicating whether to show or hide buttons. TRUE = hide, FALSE = show (default: FALSE)
 #' @param conf_int Whether to generate a 95\% confidence interval for the fitted line. Must select conf_int = TRUE in \code{linearDataGen()} or \code{customDataGen()} functions to generate interval. (default: FALSE)
 #' @param linear Choice of a linear or log y-scale, true = linear, else = log. If using log scale choose log_y = TRUE in \code{customDataGen()} function when generating data. (default: "true").
 #' @param log_base The base of the log scale, only affects graph if not linear is not "true". If NULL will use natural logarithm. Log_base should match log_base choice in \code{customDataGen()} function (default = NULL)
@@ -79,7 +79,7 @@
 #' @importFrom jsonlite toJSON fromJSON
 drawr <- function(data, 
                   save_html_file_path = NULL,
-                  run_app           = FALSE,
+                  hide_buttons      = FALSE,
                   conf_int          = FALSE,
                   linear            = "true", 
                   log_base          = NULL,
@@ -276,7 +276,7 @@ drawr <- function(data,
                     d3_version = "5",
                     dependencies = c("d3-jetpack"),
                     options = list(draw_start        = draw_start, 
-                                   run_app           = run_app,
+                                   hide_buttons      = hide_buttons,
                                    points_end        = points_end,
                                    linear            = as.character(linear),
                                    log_base          = log_base,

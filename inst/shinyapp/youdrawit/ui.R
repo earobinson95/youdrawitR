@@ -37,7 +37,23 @@ navbarPage(
               ),
               checkboxInput("showConfInterval", 
                             "Confidence Interval", 
-                            value = FALSE)
+                            value = FALSE),
+              useShinyjs(),
+              hidden(
+                div(
+                  id = "dataSelector",
+                  radioButtons("line_selector", label = "Select data to display", 
+                               choices = list("Original line" = "original", "New lines" = "new"),
+                               selected = "original")
+                ),
+                div(
+                  id = "line_number",
+                  sliderInput("line_number", "Choose line:", 
+                              min = 1, max = 2, 
+                              value = 1, step = 1,
+                              width = "120px")
+                )
+              )
             ),
             useShinyjs(),
             hidden(

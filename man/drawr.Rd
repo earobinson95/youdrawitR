@@ -7,7 +7,7 @@
 drawr(
   data,
   save_html_file_path = NULL,
-  run_app = FALSE,
+  hide_buttons = FALSE,
   conf_int = FALSE,
   linear = "true",
   log_base = NULL,
@@ -35,7 +35,7 @@ drawr(
 
 \item{save_html_file_path}{File path to save d3 output as an html. If null will not save. Can just provide filename and will save to current working directory. (default: NULL)}
 
-\item{run_app}{Logical value indicating whether to run the Shiny app. Can also define as true if user would like to remove buttons. (default: FALSE)}
+\item{hide_buttons}{Logical value indicating whether to show or hide buttons. TRUE = hide, FALSE = show (default: FALSE)}
 
 \item{conf_int}{Whether to generate a 95\% confidence interval for the fitted line. Must select conf_int = TRUE in \code{linearDataGen()} or \code{customDataGen()} functions to generate interval. (default: FALSE)}
 

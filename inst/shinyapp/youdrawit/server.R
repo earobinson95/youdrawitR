@@ -35,7 +35,7 @@ function(input, output, session) {
           conf_int = input$showConfInterval
         )
         
-        drawr(data, run_app = T, conf_int = input$showConfInterval)
+        drawr(data, hide_buttons = T, conf_int = input$showConfInterval)
       })
     }
     
@@ -48,6 +48,7 @@ function(input, output, session) {
         updateCheckboxInput(session, "newLine", 
                             label = "New Line", value = FALSE)
       }
+      updateRadioButtons(session, "line_selector", selected = "original")
     })
     
     observeEvent(input$reset, {
@@ -72,8 +73,25 @@ function(input, output, session) {
       resetClicked(FALSE)  # reset the state of resetClicked after using it
     })
     
+    new_line_data <- eventReactive(input$newLineData, {
+      newLineData <- input$newLineData
+      # Convert the JSON data to a list or data frame
+      jsonlite::fromJSON(newLineData)
+    })
+    
     observeEvent(input$completedLineData, {
       shinyjs::show("recordedDataSection")
+    })
+    
+    observeEvent(input$newLineData, {
+      new_line_data <- jsonlite::fromJSON(input$newLineData)
+      if (length(new_line_data) > 0) {
+        shinyjs::show("dataSelector")
+      }
+      else {
+        shinyjs::hide("dataSelector")
+        updateRadioButtons(session, "line_selector", selected = "original")
+      }
     })
     
     user_line_data <- eventReactive(input$completedLineData, {
@@ -83,13 +101,44 @@ function(input, output, session) {
     })
     
     output$drawndata <- renderDataTable({
-      DT::datatable(user_line_data(), rownames = FALSE)
+      # Based on the user selection, display the original or the new line data
+      selected_line <- input$line_selector
+      if (selected_line == "original") {
+        shinyjs::hide("line_number")
+        updateSliderInput(session, "line_number", value = 1)
+        DT::datatable(user_line_data(), rownames = FALSE)
+      } else if (selected_line == "new") {
+          if (length(new_line_data()) > 1) {
+            shinyjs::show("line_number")
+            updateSliderInput(session, "line_number", 
+                              max = length(new_line_data()))
+            
+          }
+          else {
+            shinyjs::hide("line_number")
+            updateSliderInput(session, "line_number", value = 1)
+          }
+          DT::datatable(new_line_data()[[input$line_number]], rownames = FALSE)
+      }
     })
     
     output$saveData <- downloadHandler(
-      filename = "data.csv",
+      filename = function() {
+        paste("data-", Sys.Date(), ".csv", sep="")
+      },
       content = function(file) {
-        write.csv(user_line_data(), file, row.names = FALSE)
+        # Based on the user selection, save the original or the new line data
+        selected_line <- input$line_selector
+        data_to_save <- NULL
+        if (selected_line == "original") {
+          data_to_save <- user_line_data()
+        } else if (selected_line == "new") {
+           data_to_save <- new_line_data()[[input$line_number]]
+        }
+        
+        if (!is.null(data_to_save)) {
+          write.csv(data_to_save, file, row.names = FALSE)
+        }
       }
     )
     
@@ -301,10 +350,10 @@ function(input, output, session) {
       
       # Update the drawr output with the processed data
       if ((regression_type == "Linear") && (input$confInt)) {
-        output$shinydrawr <- r2d3::renderD3({ drawr(data, run_app = T, conf_int = TRUE) })
+        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, conf_int = TRUE) })
       }
       else {
-        output$shinydrawr <- r2d3::renderD3({ drawr(data, run_app = T) })
+        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T) })
       }
       dataSubmitted <- TRUE
       # Close the modal dialog

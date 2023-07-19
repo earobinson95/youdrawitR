@@ -81,55 +81,6 @@ r2d3.onRender(function(data, svg, width, height, options) {
   state.w = height*options.aspect_ratio;
 
   start_drawer(state);
-  
-  if (!state.run_app) {
-    // add download data buttons
-  const downloadButton = svg.append("g")
-    .attr("class", "button")
-    .style("cursor", "pointer")
-    .attr("transform", 
-      `translate(${state.w + margin.right + margin.left}, ${margin.top})`)
-    .on("click", handleDownloadClick);
-
-  downloadButton.append("rect")
-    .attr("x", 0)
-    .attr("y", 0)
-    .attr("width", 110)
-    .attr("height", 25)
-    .attr("rx", 5)
-    .attr("ry", 5)
-    .style("fill", "#ECECEC")
-    .style("stroke", "black")
-    .style("stroke-width", 2)
-    
-  downloadButton.on("mouseover", function() {
-    d3.select(this).select("rect")
-      .style("fill", "darkgray");
-  })
-  .on("mouseout", function() {
-    d3.select(this).select("rect")
-      .style("fill", "#ECECEC");
-  });
-  
-  downloadButton.append("text")
-    .attr("x", 55)
-    .attr("y", 12.5)
-    .attr("text-anchor", "middle")
-    .attr("alignment-baseline", "middle")
-    .attr("fill", "black")
-    .attr("font-size", 14)
-    .text("Download Data");
-  
-  function handleDownloadClick() {
-    var drawn_line = svg.select("path.user_line").datum();
-    var jsonData = JSON.stringify(drawn_line);
-    var bb = new Blob([jsonData], { type: 'text/plain' });
-    var a = document.createElement('a');
-    a.download = 'draw_line_data.txt';
-    a.href = window.URL.createObjectURL(bb);
-    a.click();
-  }
-  }
 });
 
 // An explicit resize handler
@@ -230,9 +181,11 @@ function start_drawer(state, reset = true){
       // Convert the completedLine to JSON
       if(typeof Shiny !== 'undefined') {
         var jsonData = JSON.stringify(svg.select("path.user_line").datum());
+        var newlines = JSON.stringify(newLineData)
       
         // Send the data to the Shiny server
         Shiny.setInputValue("completedLineData", jsonData);
+        Shiny.setInputValue("newLineData", newlines);
       }
       
       // Send the JSON data to R using an HTTP request
@@ -253,6 +206,7 @@ function start_drawer(state, reset = true){
       // Reset paths and lineGens arrays
       paths = [];
       lineGens = [];
+      newLineData = [];
       
       if (isDrawing) {
         newLine();
@@ -266,18 +220,22 @@ function start_drawer(state, reset = true){
   }
 
   // Press button to be able to draw more lines
-  var lineGen, path, data = [];
+  var lineGen, path, data, scale_data = [];
   var mousedown = false;
   var isDrawing = false;
   var draw_watcher = null;
   var paths = [];
   var lineGens = [];
+  let newLineData = [];
   
   function newLine() {
     if (isDrawing) {
+      if (scale_data.length > 0) {
+        newLineData.push(scale_data);
+      }
       // Stop drawing and remove new draw watcher
       isDrawing = false;
-      if (!state.run_app) {
+      if (!state.hide_buttons) {
       buttonText.text("New Line");
         buttonRect.transition().duration(200).style("fill", "#ECECEC");
       }
@@ -295,7 +253,7 @@ function start_drawer(state, reset = true){
   
     // Start drawing and create new draw watcher
     isDrawing = true;
-    if (!state.run_app) {
+    if (!state.hide_buttons) {
       buttonText.text("Stop Drawing");
       buttonRect.transition().duration(200).style("fill", "red");
     }
@@ -312,12 +270,15 @@ function start_drawer(state, reset = true){
   
     path = state.svg.append('path')
       .at(conf_int_line_attrs)
-      .attr("opacity", 0.75);
+      .attr("stroke-dasharray", "7, 5")
+      .attr("opacity", 0.95);
       
     // Store the path
     paths.push(path);
   
     data = [];  // clear data for new line
+    
+    scale_data = [];
   
   draw_watcher = state.svg.append('rect')
     .attr('class', 'draw_watcher')
@@ -332,6 +293,8 @@ function start_drawer(state, reset = true){
         var coords = d3.mouse(this);
         if (!coordsInWatcher(coords)) return;
         data.push({ x: coords[0], y: coords[1] });
+        scale_data.push({ x: scales.x.invert(coords[0]), 
+                          y: scales.y.invert(coords[1]) })
         path.attr('d', lineGen(data));
       })
       .on("drag", function() {
@@ -339,6 +302,8 @@ function start_drawer(state, reset = true){
         var coords = d3.mouse(this);
         if (!coordsInWatcher(coords)) return;
         data.push({ x: coords[0], y: coords[1] });
+        scale_data.push({ x: scales.x.invert(coords[0]), 
+                  y: scales.y.invert(coords[1]) })
         path.attr('d', lineGen(data));
       })
       .on("end", function() {
@@ -357,7 +322,7 @@ function start_drawer(state, reset = true){
   }
   }
   
-  if (!state.run_app) {
+  if (!state.hide_buttons) {
     const button = svg.append("g")
       .attr("class", "button")
       .style("cursor", "pointer")
@@ -447,15 +412,65 @@ function start_drawer(state, reset = true){
       paths.forEach(function(path) {
         path.remove();
       });
-    
+      
       // Reset paths and lineGens arrays
       paths = [];
+      newLineData = [];
       lineGens = [];
       if (isDrawing) {
         newLine();
       }
       start_drawer(state, reset = true)
     }
+
+    // add download data buttons
+  const downloadButton = svg.append("g")
+    .attr("class", "button")
+    .style("cursor", "pointer")
+    .attr("transform", 
+      `translate(${state.w + margin.right + margin.left}, ${margin.top})`)
+    .on("click", handleDownloadClick);
+
+  downloadButton.append("rect")
+    .attr("x", 0)
+    .attr("y", 0)
+    .attr("width", 110)
+    .attr("height", 25)
+    .attr("rx", 5)
+    .attr("ry", 5)
+    .style("fill", "#ECECEC")
+    .style("stroke", "black")
+    .style("stroke-width", 2)
+    
+  downloadButton.on("mouseover", function() {
+    d3.select(this).select("rect")
+      .style("fill", "darkgray");
+  })
+  .on("mouseout", function() {
+    d3.select(this).select("rect")
+      .style("fill", "#ECECEC");
+  });
+  
+  downloadButton.append("text")
+    .attr("x", 55)
+    .attr("y", 12.5)
+    .attr("text-anchor", "middle")
+    .attr("alignment-baseline", "middle")
+    .attr("fill", "black")
+    .attr("font-size", 14)
+    .text("Download Data");
+  
+  function handleDownloadClick() {
+    var drawn_line = svg.select("path.user_line").datum();
+    var jsonData = JSON.stringify(drawn_line);
+    var new_line_data = JSON.stringify(newLineData);
+    download_content = "Original Line:\n" + jsonData + "\n\nNew Lines:\n" + new_line_data;
+    var bb = new Blob([download_content], { type: 'text/plain' });
+    var a = document.createElement('a');
+    a.download = 'draw_line_data.txt';
+    a.href = window.URL.createObjectURL(bb);
+    a.click();
+  }
   }
   
   setup_draw_watcher(state.svg, scales, on_drag, on_end);
@@ -741,7 +756,7 @@ function draw_rectangle({svg, drawable_points, line_data, draw_start, width, hei
     }
 
     const draw_region = state.svg.selectAppend("rect");
-
+    
     draw_region
       .attr("x", drawSpace_start)
       .attr("width",drawSpace_end - drawSpace_start)
