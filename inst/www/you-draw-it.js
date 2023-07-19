@@ -279,7 +279,9 @@ function start_drawer(state, reset = true){
   
   function newLine() {
     if (isDrawing) {
-      newLineData.push(scale_data);
+      if (scale_data.length > 0) {
+        newLineData.push(scale_data);
+      }
       // Stop drawing and remove new draw watcher
       isDrawing = false;
       if (!state.hide_buttons) {
