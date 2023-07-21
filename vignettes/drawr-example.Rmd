@@ -35,6 +35,6 @@ drawr(data, show_tooltip = TRUE)
 ## Shiny App
 
 To run shiny app in R:
-shiny::runApp(system.file("shinyapp/youdrawit", package = "youdrawitR"))
+`shiny::runApp(system.file("shinyapp/youdrawit", package = "youdrawitR"))`
 
 <iframe src = "https://dillonmurphy.shinyapps.io/youdrawit/" style="width:100%; height:500px;" class="shiny-app">
