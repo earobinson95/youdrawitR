@@ -41,7 +41,8 @@ function(input, output, session) {
     
     # Add a reactive value to track whether the reset button was clicked
     resetClicked <- reactiveVal(FALSE)
-    resetFunction <- reactive({
+    
+    observeEvent(input$reset, {
       session$sendCustomMessage("resetAction", "true")
       if (input$newLine) {
         resetClicked(TRUE)
@@ -49,14 +50,22 @@ function(input, output, session) {
                             label = "New Line", value = FALSE)
       }
       updateRadioButtons(session, "line_selector", selected = "original")
-    })
-    
-    observeEvent(input$reset, {
-      resetFunction()
+      shinyjs::hide("dataSelector")
+      shinyjs::hide("line_number")
+      shinyjs::hide("recordedDataSection")
     })
     
     observeEvent(input$showConfInterval, {
-      resetFunction()
+      session$sendCustomMessage("resetAction", "true")
+      if (input$newLine) {
+        resetClicked(TRUE)
+        updateCheckboxInput(session, "newLine", 
+                            label = "New Line", value = FALSE)
+      }
+      updateRadioButtons(session, "line_selector", selected = "original")
+      shinyjs::hide("dataSelector")
+      shinyjs::hide("line_number")
+      shinyjs::hide("recordedDataSection")
     })
 
     # Observe the newLine checkbox and only send message when it's clicked
@@ -153,6 +162,10 @@ function(input, output, session) {
         updateCheckboxInput(session, "newLine", 
                             label = "New Line", value = FALSE)
       }
+      updateRadioButtons(session, "line_selector", selected = "original")
+      shinyjs::hide("dataSelector")
+      shinyjs::hide("line_number")
+      shinyjs::hide("recordedDataSection")
       showModal(
         modalDialog(
           title = "Simulate Linear Data Parameters",
@@ -212,6 +225,10 @@ function(input, output, session) {
         updateCheckboxInput(session, "newLine", 
                             label = "New Line", value = FALSE)
       }
+      updateRadioButtons(session, "line_selector", selected = "original")
+      shinyjs::hide("dataSelector")
+      shinyjs::hide("line_number")
+      shinyjs::hide("recordedDataSection")
       showModal(
         modalDialog(
           fluidRow(
