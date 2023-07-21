@@ -14,3 +14,20 @@
 ```markdown
 devtools::install_github("earobinson95/youdrawitR")
 ```
+
+## Usage
+
+```r
+library(youdrawitR)
+data <- linearDataGen(y_xbar = 3.9,
+                      slope  = 0.8,
+                      sigma  = 2.8,
+                      x_min   = 0,
+                      x_max   = 20,
+                      N       = 40,
+                      x_by    = 0.25)
+
+drawr(data, show_tooltip = TRUE)
+```
+
+![Example usage](man/figures/drawr-example-1.gif)
