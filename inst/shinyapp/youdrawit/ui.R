@@ -25,10 +25,13 @@ navbarPage(
             d3Output("shinydrawr", height = "500px", width = "800px"),
             actionButton("inputData", "Input Data", 
                          style = "position: absolute; top: 10px; left: 600px;"),
+            actionButton("simulateData", "Simulate Data", 
+                         style = "position: absolute; top: 60px; left: 600px;"),
             actionButton("reset", "Reset", 
-                         style = "position: absolute; top: 445px; left: 600px;"),
+                         style = "position: absolute; top: 445px; left: 600px;",
+                         class = "btn btn-primary"),
             div(
-              style = "position: absolute; top: 60px; left: 600px;",
+              style = "position: absolute; top: 100px; left: 600px;",
               checkboxInput("newLine", "New Line", value = FALSE),
               checkboxInput(
                 inputId = "tooltipButton",

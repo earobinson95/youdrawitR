@@ -146,6 +146,65 @@ function(input, output, session) {
       tags$h3(paste(input$regressionType, "Regression Options"), style = "font-size: 16px; margin-top: -10px;")
     })
     
+    observeEvent(input$simulateData, {
+      session$sendCustomMessage("resetAction", "true")
+      if (input$newLine) {
+        resetClicked(TRUE)
+        updateCheckboxInput(session, "newLine", 
+                            label = "New Line", value = FALSE)
+      }
+      showModal(
+        modalDialog(
+          title = "Simulate Linear Data Parameters",
+          fluidRow(
+            column(
+              width = 5,
+              sliderInput("beta", "Slope (Beta):", min = -1, max = 1, value = 0.2, step = 0.05),
+              sliderInput("sd", "Standard Deviation:", min = 0.01, max = 2, value = 0.2, step = 0.05),
+              sliderInput("y_xbar", "Average Y Value:", min = -10, max = 30, value = 5, step = 1),
+              checkboxInput(inputId = "confInt",
+                            label = "Display 95% Confidence Interval Bounds",
+                            value = FALSE)
+            ),
+            column(
+              width = 5,
+              sliderInput("Npoints", "Number of Points:", min = 10, max = 100, value = 20, step = 5),
+              sliderInput("by", "Step Size of X Values:", min = 0.05, max = 0.5, value = 0.25, step = 0.05),
+              sliderInput("x_range", "X Range:", min = -20, max = 50, value = c(0, 20))
+            )
+          ),
+          footer = tagList(
+            actionButton("submitSimulateData", "Submit", class = "btn btn-primary"),
+            modalButton("Cancel")
+          )
+        )
+      )
+    })
+    
+    observeEvent(input$submitSimulateData, {
+      shinyjs::hide("showConfInterval")
+      
+      data <- linearDataGen(slope = input$beta,
+                            y_xbar = input$y_xbar,
+                            sigma = input$sd,
+                            x_by = input$by,
+                            x_min = input$x_range[1],
+                            x_max = input$x_range[2],
+                            N = input$Npoints,
+                            conf_int = input$confInt)
+      # Update the drawr output with the processed data
+      if (input$confInt) {
+        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, conf_int = TRUE) })
+      }
+      else {
+        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T) })
+      }
+      
+      dataSubmitted <- TRUE
+      # Close the modal dialog
+      removeModal()
+    })
+    
     observeEvent(input$inputData, {
       session$sendCustomMessage("resetAction", "true")
       if (input$newLine) {
@@ -236,7 +295,7 @@ function(input, output, session) {
           )
           ),
           footer = tagList(
-            actionButton("submitData", "Submit"),
+            actionButton("submitData", "Submit", class = "btn btn-primary"),
             modalButton("Cancel")
           )
       )
