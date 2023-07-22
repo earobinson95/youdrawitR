@@ -19,13 +19,12 @@ devtools::install_github("earobinson95/youdrawitR")
 
 ```r
 library(youdrawitR)
-data <- linearDataGen(y_xbar = 3.9,
+data <- linearDataGen(y_int = -4,
                       slope  = 0.8,
                       sigma  = 2.8,
                       x_min   = 0,
                       x_max   = 20,
-                      N       = 40,
-                      x_by    = 0.25)
+                      N       = 40)
 
 drawr(data, show_tooltip = TRUE)
 ```

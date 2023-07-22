@@ -25,13 +25,12 @@ function(input, output, session) {
         input$reset
         
         data <- linearDataGen(
-          y_xbar = rnorm(1, 5, 1),
+          y_int = rnorm(1, 5, 15),
           slope = runif(1, -2, 2),
           sigma = runif(1, 1, 3),
           x_min = 0,
           x_max = 20,
           N = 40,
-          x_by = 0.25,
           conf_int = input$showConfInterval
         )
         
@@ -174,16 +173,15 @@ function(input, output, session) {
               width = 5,
               sliderInput("beta", "Slope (Beta):", min = -1, max = 1, value = 0.2, step = 0.05),
               sliderInput("sd", "Standard Deviation:", min = 0.01, max = 2, value = 0.2, step = 0.05),
-              sliderInput("y_xbar", "Average Y Value:", min = -10, max = 30, value = 5, step = 1),
-              checkboxInput(inputId = "confInt",
-                            label = "Display 95% Confidence Interval Bounds",
-                            value = FALSE)
+              sliderInput("y_int", "Y Intercept:", min = -15, max = 30, value = 5, step = 1),
             ),
             column(
               width = 5,
               sliderInput("Npoints", "Number of Points:", min = 10, max = 100, value = 20, step = 5),
-              sliderInput("by", "Step Size of X Values:", min = 0.05, max = 0.5, value = 0.25, step = 0.05),
-              sliderInput("x_range", "X Range:", min = -20, max = 50, value = c(0, 20))
+              sliderInput("x_range", "X Range:", min = -20, max = 50, value = c(0, 20)),
+              checkboxInput(inputId = "confInt",
+                            label = "Display 95% Confidence Interval Bounds",
+                            value = FALSE)
             )
           ),
           footer = tagList(
@@ -198,9 +196,8 @@ function(input, output, session) {
       shinyjs::hide("showConfInterval")
       
       data <- linearDataGen(slope = input$beta,
-                            y_xbar = input$y_xbar,
+                            y_int = input$y_int,
                             sigma = input$sd,
-                            x_by = input$by,
                             x_min = input$x_range[1],
                             x_max = input$x_range[2],
                             N = input$Npoints,
