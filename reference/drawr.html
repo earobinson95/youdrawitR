@@ -186,13 +186,12 @@ automatically when function is called if not assigned to a variable for further 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Example 1: Simulating linear data and plotting</span></span></span>
-<span class="r-in"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="linearDataGen.html">linearDataGen</a></span><span class="op">(</span>y_xbar <span class="op">=</span> <span class="fl">3.9</span>,</span></span>
+<span class="r-in"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="linearDataGen.html">linearDataGen</a></span><span class="op">(</span>y_int <span class="op">=</span> <span class="op">-</span><span class="fl">4</span>,</span></span>
 <span class="r-in"><span>                      slope  <span class="op">=</span> <span class="fl">0.8</span>,</span></span>
 <span class="r-in"><span>                      sigma  <span class="op">=</span> <span class="fl">2.8</span>,</span></span>
 <span class="r-in"><span>                      x_min  <span class="op">=</span> <span class="fl">0</span>,</span></span>
 <span class="r-in"><span>                      x_max  <span class="op">=</span> <span class="fl">20</span>,</span></span>
-<span class="r-in"><span>                      N      <span class="op">=</span> <span class="fl">40</span>,</span></span>
-<span class="r-in"><span>                      x_by   <span class="op">=</span> <span class="fl">0.25</span><span class="op">)</span></span></span>
+<span class="r-in"><span>                      N      <span class="op">=</span> <span class="fl">40</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu">drawr</span><span class="op">(</span><span class="va">data</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Example 2: Using custom data frame and custom options</span></span></span>

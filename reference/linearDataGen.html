@@ -52,7 +52,7 @@ suitable for the <code><a href="drawr.html">drawr()</a></code> function.</p>
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">linearDataGen</span><span class="op">(</span></span>
-<span>  <span class="va">y_xbar</span>,</span>
+<span>  <span class="va">y_int</span>,</span>
 <span>  <span class="va">slope</span>,</span>
 <span>  <span class="va">sigma</span>,</span>
 <span>  points_choice <span class="op">=</span> <span class="st">"full"</span>,</span>
@@ -60,15 +60,14 @@ suitable for the <code><a href="drawr.html">drawr()</a></code> function.</p>
 <span>  N <span class="op">=</span> <span class="fl">30</span>,</span>
 <span>  x_min <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  x_max <span class="op">=</span> <span class="fl">20</span>,</span>
-<span>  x_by <span class="op">=</span> <span class="fl">0.25</span>,</span>
 <span>  conf_int <span class="op">=</span> <span class="cn">F</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
-    <dl><dt>y_xbar</dt>
-<dd><p>The y value when x is average.</p></dd>
+    <dl><dt>y_int</dt>
+<dd><p>The y intercept of the line data.</p></dd>
 
 
 <dt>slope</dt>
@@ -97,10 +96,6 @@ suitable for the <code><a href="drawr.html">drawr()</a></code> function.</p>
 
 <dt>x_max</dt>
 <dd><p>The maximum x value. (default: 20)</p></dd>
-
-
-<dt>x_by</dt>
-<dd><p>The increment value for x. (default: 0.25)</p></dd>
 
 
 <dt>conf_int</dt>
