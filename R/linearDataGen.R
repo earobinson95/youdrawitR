@@ -3,7 +3,7 @@
 #' \code{linearDataGen()} generates simulated linear line data (with equation info) and point data 
 #' suitable for the \code{drawr()} function.
 #'
-#' @param y_xbar The y value when x is average.
+#' @param y_int The y intercept of the line data.
 #' @param slope The slope of the true line data
 #' @param sigma The standard deviation of the line data.
 #' @param points_choice Indicates which type of points to generate for point data. (default: "full")
@@ -11,7 +11,6 @@
 #' @param N The number of points to generate. (default: 30)
 #' @param x_min The minimum x value. (default: 0)
 #' @param x_max The maximum x value. (default: 20)
-#' @param x_by The increment value for x. (default: 0.25)
 #' @param conf_int If a 95\% confidence interval should be generated for \code{drawr()} function. (default: FALSE)
 #' 
 #' @return A list containing the generated point data and line data (with equation info).
@@ -21,7 +20,7 @@
 #' @importFrom dplyr %>% arrange
 #' @importFrom stats coef lm rnorm predict
 linearDataGen <- 
-  function(y_xbar, 
+  function(y_int, 
            slope, 
            sigma, 
            points_choice = "full", 
@@ -29,7 +28,6 @@ linearDataGen <-
            N = 30,
            x_min = 0,
            x_max = 20,
-           x_by  = 0.25,
            conf_int = F){
     
     points_end_scale <- ifelse(points_choice == "full", 1, points_end_scale)
@@ -39,15 +37,13 @@ linearDataGen <-
     xVals <- ifelse(xVals < x_min, x_min, xVals)
     xVals <- ifelse(xVals > x_max, x_max, xVals)
     
-    yintercept = y_xbar - slope*mean(xVals)
-    
     errorVals <- rnorm(N, 0, sigma)
     
     
     # Simulate point data
     point_data <- tibble(data = "point_data",
                          x = xVals,
-                         y = yintercept + slope*x + errorVals) %>%
+                         y = y_int + slope*x + errorVals) %>%
       arrange(x)
     
     # Obtain least squares regression coefficients
@@ -71,7 +67,7 @@ linearDataGen <-
       
       # Simulate best fit line data
       line_data <- tibble(data = "line_data", 
-                          x = seq(x_min, x_max, x_by), 
+                          x = seq(x_min, x_max, 0.25), 
                           y = yintercepthat + slopehat*x,
                           coef = coef(lm.fit)["x"] |> as.numeric(),
                           int = coef(lm.fit)["(Intercept)"] |> as.numeric())

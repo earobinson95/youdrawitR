@@ -25,13 +25,12 @@ function(input, output, session) {
         input$reset
         
         data <- linearDataGen(
-          y_xbar = rnorm(1, 5, 1),
+          y_int = rnorm(1, 5, 15),
           slope = runif(1, -2, 2),
           sigma = runif(1, 1, 3),
           x_min = 0,
           x_max = 20,
           N = 40,
-          x_by = 0.25,
           conf_int = input$showConfInterval
         )
         
@@ -41,7 +40,8 @@ function(input, output, session) {
     
     # Add a reactive value to track whether the reset button was clicked
     resetClicked <- reactiveVal(FALSE)
-    resetFunction <- reactive({
+    
+    observeEvent(input$reset, {
       session$sendCustomMessage("resetAction", "true")
       if (input$newLine) {
         resetClicked(TRUE)
@@ -49,14 +49,22 @@ function(input, output, session) {
                             label = "New Line", value = FALSE)
       }
       updateRadioButtons(session, "line_selector", selected = "original")
-    })
-    
-    observeEvent(input$reset, {
-      resetFunction()
+      shinyjs::hide("dataSelector")
+      shinyjs::hide("line_number")
+      shinyjs::hide("recordedDataSection")
     })
     
     observeEvent(input$showConfInterval, {
-      resetFunction()
+      session$sendCustomMessage("resetAction", "true")
+      if (input$newLine) {
+        resetClicked(TRUE)
+        updateCheckboxInput(session, "newLine", 
+                            label = "New Line", value = FALSE)
+      }
+      updateRadioButtons(session, "line_selector", selected = "original")
+      shinyjs::hide("dataSelector")
+      shinyjs::hide("line_number")
+      shinyjs::hide("recordedDataSection")
     })
 
     # Observe the newLine checkbox and only send message when it's clicked
@@ -146,6 +154,67 @@ function(input, output, session) {
       tags$h3(paste(input$regressionType, "Regression Options"), style = "font-size: 16px; margin-top: -10px;")
     })
     
+    observeEvent(input$simulateData, {
+      session$sendCustomMessage("resetAction", "true")
+      if (input$newLine) {
+        resetClicked(TRUE)
+        updateCheckboxInput(session, "newLine", 
+                            label = "New Line", value = FALSE)
+      }
+      updateRadioButtons(session, "line_selector", selected = "original")
+      shinyjs::hide("dataSelector")
+      shinyjs::hide("line_number")
+      shinyjs::hide("recordedDataSection")
+      showModal(
+        modalDialog(
+          title = "Simulate Linear Data Parameters",
+          fluidRow(
+            column(
+              width = 5,
+              sliderInput("beta", "Slope (Beta):", min = -1, max = 1, value = 0.2, step = 0.05),
+              sliderInput("sd", "Standard Deviation:", min = 0.01, max = 2, value = 0.2, step = 0.05),
+              sliderInput("y_int", "Y Intercept:", min = -15, max = 30, value = 5, step = 1),
+            ),
+            column(
+              width = 5,
+              sliderInput("Npoints", "Number of Points:", min = 10, max = 100, value = 20, step = 5),
+              sliderInput("x_range", "X Range:", min = -20, max = 50, value = c(0, 20)),
+              checkboxInput(inputId = "confInt",
+                            label = "Display 95% Confidence Interval Bounds",
+                            value = FALSE)
+            )
+          ),
+          footer = tagList(
+            actionButton("submitSimulateData", "Submit", class = "btn btn-primary"),
+            modalButton("Cancel")
+          )
+        )
+      )
+    })
+    
+    observeEvent(input$submitSimulateData, {
+      shinyjs::hide("showConfInterval")
+      
+      data <- linearDataGen(slope = input$beta,
+                            y_int = input$y_int,
+                            sigma = input$sd,
+                            x_min = input$x_range[1],
+                            x_max = input$x_range[2],
+                            N = input$Npoints,
+                            conf_int = input$confInt)
+      # Update the drawr output with the processed data
+      if (input$confInt) {
+        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, conf_int = TRUE) })
+      }
+      else {
+        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T) })
+      }
+      
+      dataSubmitted <- TRUE
+      # Close the modal dialog
+      removeModal()
+    })
+    
     observeEvent(input$inputData, {
       session$sendCustomMessage("resetAction", "true")
       if (input$newLine) {
@@ -153,6 +222,10 @@ function(input, output, session) {
         updateCheckboxInput(session, "newLine", 
                             label = "New Line", value = FALSE)
       }
+      updateRadioButtons(session, "line_selector", selected = "original")
+      shinyjs::hide("dataSelector")
+      shinyjs::hide("line_number")
+      shinyjs::hide("recordedDataSection")
       showModal(
         modalDialog(
           fluidRow(
@@ -236,7 +309,7 @@ function(input, output, session) {
           )
           ),
           footer = tagList(
-            actionButton("submitData", "Submit"),
+            actionButton("submitData", "Submit", class = "btn btn-primary"),
             modalButton("Cancel")
           )
       )

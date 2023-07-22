@@ -5,7 +5,7 @@
 \title{Linear Data Generation}
 \usage{
 linearDataGen(
-  y_xbar,
+  y_int,
   slope,
   sigma,
   points_choice = "full",
@@ -13,12 +13,11 @@ linearDataGen(
   N = 30,
   x_min = 0,
   x_max = 20,
-  x_by = 0.25,
   conf_int = F
 )
 }
 \arguments{
-\item{y_xbar}{The y value when x is average.}
+\item{y_int}{The y intercept of the line data.}
 
 \item{slope}{The slope of the true line data}
 
@@ -33,8 +32,6 @@ linearDataGen(
 \item{x_min}{The minimum x value. (default: 0)}
 
 \item{x_max}{The maximum x value. (default: 20)}
-
-\item{x_by}{The increment value for x. (default: 0.25)}
 
 \item{conf_int}{If a 95\% confidence interval should be generated for \code{drawr()} function. (default: FALSE)}
 }
