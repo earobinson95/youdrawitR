@@ -41,7 +41,12 @@
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="articles/drawr-example.html">drawr-example</a>
+    <h6 class="dropdown-header" data-toc-skip>Examples</h6>
+    <a class="dropdown-item" href="articles/customDataGen.html">customDataGen</a>
+    <a class="dropdown-item" href="articles/linearDataGen.html">linearDataGen</a>
+    <div class="dropdown-divider"></div>
+    <h6 class="dropdown-header" data-toc-skip>Extra</h6>
+    <a class="dropdown-item" href="articles/web_only/ShinyApp.html">Shiny App</a>
   </div>
 </li>
       </ul>
@@ -74,19 +79,22 @@
 <div class="section level2">
 <h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
 </h2>
+<p>First, load the youdrawitR package</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://earobinson95.github.io/youdrawitR/">youdrawitR</a></span><span class="op">)</span></span>
-<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/linearDataGen.html">linearDataGen</a></span><span class="op">(</span>y_int <span class="op">=</span> <span class="op">-</span><span class="fl">4</span>,</span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://earobinson95.github.io/youdrawitR/">youdrawitR</a></span><span class="op">)</span></span></code></pre></div>
+<p>Then, you can generate data to use with the <code><a href="reference/drawr.html">drawr()</a></code> function using either the <code><a href="reference/linearDataGen.html">linearDataGen()</a></code> or <code><a href="reference/customDataGen.html">customDataGen()</a></code> functions (look at function reference to read more). The <code><a href="reference/linearDataGen.html">linearDataGen()</a></code> function is used to simulate a linear dataset in this example.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/linearDataGen.html">linearDataGen</a></span><span class="op">(</span>y_int <span class="op">=</span> <span class="op">-</span><span class="fl">4</span>,</span>
 <span>                      slope  <span class="op">=</span> <span class="fl">0.8</span>,</span>
 <span>                      sigma  <span class="op">=</span> <span class="fl">2.8</span>,</span>
 <span>                      x_min   <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>                      x_max   <span class="op">=</span> <span class="fl">20</span>,</span>
-<span>                      N       <span class="op">=</span> <span class="fl">40</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="reference/drawr.html">drawr</a></span><span class="op">(</span><span class="va">data</span>, show_tooltip <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
-<img src="reference/figures/drawr-example-1.gif" alt=""><p class="caption">Example usage</p>
-</div>
+<span>                      N       <span class="op">=</span> <span class="fl">40</span><span class="op">)</span></span></code></pre></div>
+<p>Lastly, the data can be entered into the <code><a href="reference/drawr.html">drawr()</a></code> function where the user can draw a line to predict a trend in the data. There are many visual parameters the users can change in the <code><a href="reference/drawr.html">drawr()</a></code> function, in this example the progress tooltip is shown.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/drawr.html">drawr</a></span><span class="op">(</span><span class="va">data</span>, show_tooltip <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>Here is the example of using the interactive graphic. The new line functionality has been used in this example to draw upper and lower bounds of a 95% confidence interval.</p>
+<p><img src="reference/figures/drawr-example-1.gif"></p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="license">
