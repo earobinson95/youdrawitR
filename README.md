@@ -17,16 +17,29 @@ devtools::install_github("earobinson95/youdrawitR")
 
 ## Usage
 
+First, load the youdrawitR package
+
 ```r
 library(youdrawitR)
+```
+
+Then, you can generate data to use with the `drawr()` function using either the `linearDataGen()` or `customDataGen()` functions (look at function reference to read more). The `linearDataGen()` function is used to simulate a linear dataset in this example.
+
+```r
 data <- linearDataGen(y_int = -4,
                       slope  = 0.8,
                       sigma  = 2.8,
                       x_min   = 0,
                       x_max   = 20,
                       N       = 40)
+```
 
+Lastly, the data can be entered into the `drawr()` function where the user can draw a line to predict a trend in the data. There are many visual parameters the users can change in the `drawr()` function, in this example the progress tooltip is shown.
+
+```r
 drawr(data, show_tooltip = TRUE)
 ```
 
-![Example usage](man/figures/drawr-example-1.gif)
+Here is the example of using the interactive graphic. The new line functionality has been used in this example to draw upper and lower bounds of a 95% confidence interval.
+
+![](man/figures/drawr-example-1.gif)
