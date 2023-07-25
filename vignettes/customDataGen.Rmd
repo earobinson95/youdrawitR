@@ -1,8 +1,8 @@
 ---
-title: "drawr-example"
+title: "Examples: customDataGen"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{drawr-example}
+  %\VignetteIndexEntry{Examples: customDataGen}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -30,10 +30,3 @@ data <- linearDataGen(y_int = -4,
 
 drawr(data, show_tooltip = TRUE)
 ```
-
-## Shiny App
-
-To run shiny app in R:
-`shiny::runApp(system.file("shinyapp/youdrawit", package = "youdrawitR"))`
-
-<iframe src = "https://dillonmurphy.shinyapps.io/youdrawit/" style="width:100%; height:500px;" class="shiny-app">

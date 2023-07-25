@@ -1,11 +1,11 @@
 url: https://earobinson95.github.io/youdrawitR/
 template:
   bootstrap: 5
+  bootswatch: lumen
 
 reference:
 - title: All functions
 
-# - subtitle: Hello to you
   desc: >
     The youdrawitR package provides functions for creating interactive you-draw-it plots. Users can generate data using customDataGen 
     or linearDataGen and then utilize the drawr function to create interactive graphics for exploration and testing. Additionally, this 
@@ -15,3 +15,18 @@ reference:
   - drawr
   - customDataGen
   - linearDataGen
+
+navbar:
+ components:
+   articles:
+    text: Articles
+    menu:
+    - text: Examples
+    - text: customDataGen
+      href: articles/customDataGen.html
+    - text: linearDataGen
+      href: articles/linearDataGen.html
+    - text: -------
+    - text: Extra
+    - text: Shiny App
+      href: articles/web_only/ShinyApp.html

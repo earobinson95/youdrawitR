@@ -8,3 +8,4 @@
 ^docs$
 ^pkgdown$
 ^desktop\.ini$
+^vignettes/web_only$
