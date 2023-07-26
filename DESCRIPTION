@@ -10,6 +10,7 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.3
 URL: https://earobinson95.github.io/youdrawitR/
+BugReports: https://github.com/earobinson95/youdrawitR/issues
 Imports: 
     dplyr,
     jsonlite,

@@ -23,7 +23,7 @@ First, load the youdrawitR package
 library(youdrawitR)
 ```
 
-Then, you can generate data to use with the `drawr()` function using either the `linearDataGen()` or `customDataGen()` functions (look at function reference to read more). The `linearDataGen()` function is used to simulate a linear dataset in this example.
+Then, you can generate data to use with the `drawr()` function using either the `linearDataGen()` or `customDataGen()` functions. The `linearDataGen()` function is used to simulate a linear dataset in this example.
 
 ```r
 data <- linearDataGen(y_int = -4,
