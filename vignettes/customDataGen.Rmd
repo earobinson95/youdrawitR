@@ -16,17 +16,193 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(youdrawitR)
+
+# Use iris data set
+data(iris)
 ```
 
-## Drawr Output
+## Introduction
+
+`customDataGen()` is a versatile function that processes a dataframe to generate data that is suitable for visualizing with the `drawr()` function. This function allows you to specify the type of regression, the degree of polynomial or loess regression, whether to apply a log transformation to y for the fitted line, and whether a confidence interval should be generated.
+
+In this example, we will use the iris dataset and use the `customDataGen()` function to process it.
 
 ```{r}
-data <- linearDataGen(y_int = -4,
-                      slope  = 0.8,
-                      sigma  = 2.8,
-                      x_min   = 0,
-                      x_max   = 20,
-                      N       = 40)
-
-drawr(data, show_tooltip = TRUE)
+# Use customDataGen to process the data
+custom_data <- customDataGen(
+  df = iris,
+  xvar = "Petal.Length",
+  yvar = "Petal.Width",
+  regression_type = "linear",
+  log_y = FALSE,
+  conf_int = TRUE # conf_int can only be true for linear regression
+)
 ```
+
+The `customDataGen()`function does not necessarily need you to provide an xvar and yvar, if none are provided it will use the first column as the xvar and the second column as the yvar. For additional information on parameters of `customDataGen()` function look at the function documentation.
+
+The `customDataGen()` function returns a list containing the point data and line data processed from the inputted data frame.
+
+```{r}
+# Print out the custom data
+print(custom_data)
+```
+Now let's input the data into the `drawr()` function to visualize the processed data. Additionally we can specify the axis labels and titles of the graph, as well as produce a 95% confidence interval since it was generated using customDataGen earlier.
+
+```{r}
+drawr(custom_data, 
+      title = "Petal Width vs Petal Length", 
+      x_lab = "Petal Width",
+      subtitle = "Petal Length",
+      conf_int = TRUE)
+```
+Try drawing for yourself in the plot above! See if you can replicate the regression line. Additionally, you can also draw the 95% confidence interval boundaries using the "new line" button. Have fun experimenting with this interactive plot!
+
+## Different Regression Options
+
+The `customDataGen()` currently offers four regression options: linear, polynomial, logistic, and loess. Since we already saw linear let's take a look at the others.
+
+### Logistic Regression
+
+```{r}
+# Convert Species into a binary categorical variable
+iris$binary_species <- ifelse(iris$Species == "setosa", "setosa", "other")
+```
+
+The `customDataGen()` function can only generate logistic regression data for binary categorical variables. In this case we will use either setosa or other for species. You do not need to worry about changing this variable to a factor as the customDataGen function will do it for you.
+
+```{r}
+# Generate custom data for logistic regression
+custom_data_logistic <- customDataGen(
+  df = iris,
+  xvar = "Sepal.Length",  # Predictor variable (numeric): Sepal length in centimeters
+  yvar = "binary_species", # Response variable (binary categorical): Setosa (1) or Other (0)
+  regression_type = "logistic",
+  success_level = "setosa"
+)
+```
+
+The success_level argument specifies which of the two levels of the binary response variable is considered as the "event" or "success". In this case, we are interested in the occurrence of the 'setosa' species, and so we set "setosa" as the success_level.
+
+If success_level is not provided, the function will default to using the first level of the binary response variable, sorted alphabetically. So, if your binary response has levels "yes" and "no", and you do not specify a success_level, the function will treat "no" as the "success" level, since "no" comes before "yes" alphabetically.
+
+```{r}
+drawr(custom_data_logistic,
+      title = "Probability of 'Setosa' Species Based on Sepal Length",
+      aspect_ratio = 1.2)
+```
+Here's another chance for you to test your data drawing skills! Try to draw the logistic regression curve showing the probability of an iris being of 'Setosa' species based on its sepal length.
+
+### Polynomial Regression
+
+Polynomial regression can be used to model relationships between variables that aren't linear. In this case, we'll generate a second degree polynomial regression using "Petal.Length" as the x variable, and "Sepal.Length" as the y variable.
+
+```{r}
+# Generate custom data for polynomial regression
+custom_data_poly <- customDataGen(
+  df = iris,
+  xvar = "Petal.Length",
+  yvar = "Sepal.Length",
+  regression_type = "polynomial",
+  degree = 2 # default is 2 if not specified for poly regression
+)
+```
+
+In this example, we used a degree of 2, which means that we are fitting a quadratic polynomial to the data. Higher degrees will fit more complex polynomial curves, but remember to be aware that higher-degree polynomials can lead to over fitting.
+
+Let's visualize this data using the `drawr()` function:
+
+```{r}
+drawr(custom_data_poly, 
+      title = "Sepal Length vs Petal Length: Poly Regression")
+```
+Go ahead, try to draw the polynomial regression curve showing the relationship between petal length and sepal length. This may be more challenging than the previous plots as the relationship is not linear!
+
+### Loess Regression
+
+Loess regression is a non-parametric method that uses local data fitting to fit a smooth curve through points in a scatter plot. We'll generate a loess regression using "Sepal.Length" as the x variable, and "Sepal.Width" as the y variable.
+
+```{r}
+# Generate custom data for loess regression
+custom_data_loess <- customDataGen(
+  df = iris,
+  xvar = "Petal.Width",
+  yvar = "Sepal.Width",
+  regression_type = "loess",
+  degree = 1, # default if not specified is 1 for loess regression (must be 0, 1, or 2)
+  span = 0.75 # default if not specified is 0.75 (ranges between 0 and 1)
+)
+```
+
+In this example, we used a span of 0.75, which determines the amount of data considered for each local fit. Adjusting the span parameter allows you to control the flexibility of the loess fit. Too large of a span will result in the regression being over-smoothed, resulting in bias and loss of information, while too small of a span with insufficient data can result in larger variance and over fitting. For more details on selecting the optimal smoothing parameter, you can refer to this [guide](http://r-statistics.co/Loess-Regression-With-R.html).
+
+The degree parameter determines the degree of the polynomials used for the local fitting. A degree of 1 fits straight lines, while a degree of 2 fits parabolas. Using a higher degree can capture more complex patterns, but be careful not to over fit. Using a degree of 0 will turn loess into a weighted moving average. 
+
+Now we can visualize this data:
+
+```{r}
+drawr(custom_data_loess,
+      title = "Sepal Width vs Petal Width: Loess Regression")
+```
+Try to draw the loess regression curve. This might be the most challenging plot yet, as the relationship between sepal width and sepal length is complex and non-linear, you can almost imagine it as giving a kid a crayon and telling them to draw a line through the points. Good luck!
+
+## Logarithmic Scale
+
+The `youdrawitR` package offers functionality to plot data on a logarithmic scale. This can be particularly useful when dealing with data that exhibit exponential growth or decay. By transforming such data onto a logarithmic scale, exponential trends can be made linear, which can simplify the task of drawing the trend.
+
+When using the `customDataGen()` function, you can specify log_y = TRUE to indicate that the y variable should be transformed to the logarithmic scale. This will transform the fitted line as log(y) ~ x. If log_y is not specified or is FALSE, the fitted line is not transformed. If using a log transformation remember that all y variable data must be positive.
+
+In the `drawr()` function, you can set the linear argument to anything other than "true" to put the graph on a logarithmic scale. You should do this whenever log_y = TRUE in `customDataGen()`. Also, you can specify the base of the logarithm with the log_base argument. If log_base is not provided or is NULL, a natural logarithm (base e) is used. Be sure to use the same log_base value in both `customDataGen()` and `drawr()` functions. In order to make the transformed fitted line compatible with the logarithmic scale, the `drawr()` function exponentiates the y-values of the line data so the fitted line is correctly adjusted to represent the linear trend on the logarithmic scale.
+
+Let's see this feature in action:
+
+```{r}
+set.seed(123)
+
+# Generate x-values
+x_values <- seq(1, 100, by = 1)
+
+# Generate y-values with exponential growth and some random noise
+y_values <- exp(0.05 * x_values) * rnorm(length(x_values), mean = 1, sd = 0.2)
+
+# Make sure all y-values are positive
+y_values <- ifelse(y_values <= 0, abs(y_values), y_values)
+
+# Combine into a data frame
+exp_data <- data.frame(
+  x = x_values,
+  y = y_values
+)
+
+# Generate custom data for linear regression with log-transformed y
+custom_data_log <- customDataGen(
+  df = exp_data,
+  regression_type = "linear",
+  log_y = TRUE,
+  log_base = NULL
+)
+
+# Plot the data with a logarithmic y-scale
+drawr(custom_data_log,
+      linear = FALSE,
+      log_base = NULL,
+      title = "Log Scale")
+```
+In the plot above, you can try to draw the trend line. You'll notice that despite the original data having an exponential relationship between x and y, the line data and point data on the log scale exhibit a linear relationship. Hence, plotting data on a logarithmic scale can simplify the task of identifying and drawing trends in data that have exponential growth patterns.
+
+Let's compare to how the graph would look on a linear scale:
+
+```{r}
+# Generate custom data
+custom_data_linear <- customDataGen(
+  df = exp_data,
+  regression_type = "linear",
+  log_y = FALSE,
+)
+
+# Plot the data with a linear y-scale
+drawr(custom_data_linear,
+      linear = "true",
+      title = "Linear Scale")
+```
+As you can see, the exponential nature of the data is much more challenging to draw and understand on a linear scale. Although there may be different regression types that could potentially fit this trend better on a linear scale, transforming the data to a logarithmic scale is always a viable option. It transforms complex exponential growth patterns into more straightforward linear relationships, making the task of drawing and understanding trends significantly easier.
