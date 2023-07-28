@@ -1,6 +1,8 @@
 ---
 title: "Examples: customDataGen"
-output: rmarkdown::html_vignette
+output: 
+  rmarkdown::html_document:
+    theme: "flatly"
 vignette: >
   %\VignetteIndexEntry{Examples: customDataGen}
   %\VignetteEngine{knitr::rmarkdown}
