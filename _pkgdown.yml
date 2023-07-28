@@ -9,7 +9,7 @@ reference:
   desc: >
     The youdrawitR package provides functions for creating interactive you-draw-it plots. Users can generate data using customDataGen 
     or linearDataGen and then utilize the drawr function to create interactive graphics for exploration and testing. Additionally, this 
-    package provides a shiny app alongside the functions and information on this can be found in the shiny-app-info article.
+    package provides a shiny app alongside the functions and information on this can be found in the Shiny App info article.
     To learn more about handling and creating interactive graphics, click on any of the functions below.
   contents:
   - drawr

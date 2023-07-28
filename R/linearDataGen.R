@@ -6,8 +6,6 @@
 #' @param y_int The y intercept of the line data.
 #' @param slope The slope of the true line data
 #' @param sigma The standard deviation of the line data.
-#' @param points_choice Indicates which type of points to generate for point data. (default: "full")
-#' @param points_end_scale A scaling factor for determining the end point of the drawn line. (default: 1)
 #' @param N The number of points to generate. (default: 30)
 #' @param x_min The minimum x value. (default: 0)
 #' @param x_max The maximum x value. (default: 20)
@@ -23,14 +21,10 @@ linearDataGen <-
   function(y_int, 
            slope, 
            sigma, 
-           points_choice = "full", 
-           points_end_scale = 1,
            N = 30,
            x_min = 0,
            x_max = 20,
            conf_int = F){
-    
-    points_end_scale <- ifelse(points_choice == "full", 1, points_end_scale)
     
     # Set up x values
     xVals <- seq(x_min, x_max, length.out = N)

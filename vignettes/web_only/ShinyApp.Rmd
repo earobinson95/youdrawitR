@@ -1,8 +1,8 @@
 ---
-title: "ShinyApp"
+title: "Shiny App"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{ShinyApp}
+  %\VignetteIndexEntry{Shiny App}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -14,7 +14,49 @@ knitr::opts_chunk$set(
 )
 ```
 
-To run shiny app in R:
+## Introduction
+
+The "Can 'You Draw It'?" app is an interactive Shiny web application that allows users to draw lines on a data plot, enabling visual estimation and modeling of data trends. This shiny app utilizes and accompanies the `youdrawitR` package.
+
+## Features
+
+### Main Interface
+
+The main interface comprises a plot that users can interactively draw lines on. The interface also includes several buttons and options, such as:
+
+-   Input Data: Upload your data via file upload or text box. A pop-up for options will display once the user presses the button.
+-   Simulate Data: Create simulated data. A pop-up for options will display once the user presses the button.
+-   Reset: Clear all user-drawn lines and reset the progress.
+-   New Line Checkbox: Switch between drawing a new line or extending the original line.
+-   Show/Hide Tooltip Checkbox: Toggles the visibility of the tooltip.
+-   Confidence Interval Checkbox: Toggles the generation of the confidence intervals.
+
+### Recorded Data
+
+Once the user has completed the graph (this is shown by the yellow progress region), the recorded x and y data of the user lines will be shown. You can select which data you want to display: the original line or new user-drawn lines, if it exists. If multiple new user-drawn lines were drawn you can also select the line data you would like to display using the slider input, which is by precedence of when the line was drawn (so the first new user-drawn line will be number 1 etc). The user can then save this data to their local device using the **Save Data** button. Clicking this button will download the data that the user is currently viewing.
+
+## How To Use
+
+1.  Toggle the display of the tooltip and confidence intervals with the respective checkboxes.
+
+2.  Optionally, load your data by clicking Input Data or create simulated data by clicking Simulate Data and choosing any of the options displayed.
+
+3.  Draw a line by clicking and dragging your mouse across the plot. To add a new line line, click the new line checkbox. This will be the current drawing line until you click stop drawing (then the current drawing line will go back to original line). Clicking again will add a new line. Users cannot go back to a newly drawn line once they stop drawing.
+
+4.  Choose your drawn line data by selecting "Original line" or New lines" in the "Select data to display" section. Use the slider to select the line you want to display.
+
+5.  Save the recorded data for later use by clicking Save Data.
+
+6.  Click Reset to clear all user-drawn lines and reset the application.
+
+To run shiny app in R the user can copy this code:
+
 `shiny::runApp(system.file("shinyapp/youdrawit", package = "youdrawitR"))`
+
+You can also access the app directly through your web browser by following this [link](https://dillonmurphy.shinyapps.io/youdrawit/).
+
+## Try For Yourself
+
+Here is the deployed app found from the link above:
 
 <iframe src = "https://dillonmurphy.shinyapps.io/youdrawit/" style="width:100%; height:500px;" class="shiny-app">

@@ -2,9 +2,12 @@
 title: "Examples: linearDataGen"
 output: rmarkdown::html_vignette
 vignette: >
+  %\VignetteEncoding{UTF-8}
   %\VignetteIndexEntry{Examples: linearDataGen}
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+editor_options: 
+  markdown: 
+    wrap: sentence
 ---
 
 ```{r, include = FALSE}
@@ -14,19 +17,90 @@ knitr::opts_chunk$set(
 )
 ```
 
+## Introduction
+
+The `linearDataGen()` function in the `youdrawitR` package allows you to generate linear line and point data suitable for the `drawr()` function.
+This vignette will guide you on how to use this function and visualize the generated data.
+
 ```{r setup}
 library(youdrawitR)
 ```
 
-## Drawr Output
+## Generating Linear Data
+
+Let's generate some simple linear data.
 
 ```{r}
-data <- linearDataGen(y_int = -4,
-                      slope  = 0.8,
-                      sigma  = 2.8,
-                      x_min   = 0,
-                      x_max   = 20,
-                      N       = 40)
+set.seed(123) # Set seed to generate consistent data
 
-drawr(data, show_tooltip = TRUE)
+# Generate linear data
+linear_data <- linearDataGen(
+  y_int = 0,
+  slope = 2,
+  sigma = 2,
+  N = 30,
+  x_min = 0,
+  x_max = 20,
+  conf_int = F
+)
 ```
+
+The `linearDataGen()` function takes several arguments:
+
+-   y_int and slope define the y-intercept and slope of the line data.
+
+-   sigma is the standard deviation of the point data.
+
+-   N is the number of points to generate. Default is 30.
+
+-   x_min and x_max are the minimum and maximum x values for the line and point data. Defaults are 0 and 20.
+
+-   conf_int is a logical argument specifying whether a 95% confidence interval should be generated for the drawr function. Default is FALSE. If TRUE, user must also specify conf_int = TRUE in the `drawr()` function to generate 95% confidence interval upper and lower boundary lines.
+
+The `linearDataGen()` function returns a list containing the point data and line data generated from the parameters. Let's take a look at the data that was generated from the example above:
+
+```{r}
+linear_data
+```
+
+## Plotting the Linear Data
+
+Once the linear data is generated, you can use the `drawr()` function from the `youdrawitR` package to plot it, See example below:
+
+```{r}
+drawr(data = linear_data)
+```
+
+In the plot above, you can try to draw the trend line. You'll notice that the data has a clear linear relationship between x and y, which can be readily visualized with this function.
+
+You can experiment with different settings of the `linearDataGen()` function's parameters to generate different types of linear data.
+
+## Confidence Intervals
+
+One important feature in the `linearDataGen()` function, and `youdrawitR` package in general is the ability to add lines on the interactive graphic. One useful instance of this is for the user to generate and draw 95% confidence intervals for the line of best fit. When set to conf_int = TRUE in the `linearDataGen()` and `drawr()` functions, the functions will generate lower and upper bounds for the confidence interval.
+
+Let's generate some linear data with a confidence interval.
+
+```{r}
+set.seed(123) # Set seed to generate consistent data
+
+# Generate linear data
+linear_data_conf <- linearDataGen(
+  y_int = 0,
+  slope = 2,
+  sigma = 8,
+  N = 30,
+  x_min = 0,
+  x_max = 20,
+  conf_int = T
+)
+
+# Plot the data with a confidence interval
+drawr(
+  linear_data_conf,
+  conf_int = TRUE,
+  title = "Visualization with Confidence Interval"
+)
+```
+
+In the plot above, the dashed lines that are displayed upon completion of the original line (shown by the yellow progress region) represent the lower and upper bounds of the 95% confidence interval for the line of best fit. The user can attempt to draw the upper and lower bounds of the confidence interval using the "New Line" button in the interactive plot. Try it for yourself in the plot above.
