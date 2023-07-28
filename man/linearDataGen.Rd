@@ -4,17 +4,7 @@
 \alias{linearDataGen}
 \title{Linear Data Generation}
 \usage{
-linearDataGen(
-  y_int,
-  slope,
-  sigma,
-  points_choice = "full",
-  points_end_scale = 1,
-  N = 30,
-  x_min = 0,
-  x_max = 20,
-  conf_int = F
-)
+linearDataGen(y_int, slope, sigma, N = 30, x_min = 0, x_max = 20, conf_int = F)
 }
 \arguments{
 \item{y_int}{The y intercept of the line data.}
@@ -22,10 +12,6 @@ linearDataGen(
 \item{slope}{The slope of the true line data}
 
 \item{sigma}{The standard deviation of the line data.}
-
-\item{points_choice}{Indicates which type of points to generate for point data. (default: "full")}
-
-\item{points_end_scale}{A scaling factor for determining the end point of the drawn line. (default: 1)}
 
 \item{N}{The number of points to generate. (default: 30)}
 

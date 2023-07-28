@@ -43,3 +43,7 @@ drawr(data, show_tooltip = TRUE)
 Here is the example of using the interactive graphic. The new line functionality has been used in this example to draw upper and lower bounds of a 95% confidence interval.
 
 ![](man/figures/drawr-example-1.gif)
+
+## Button Info
+
+To Add: Discuss new line functionality, download data button, how to hide. (maybe add to articles)

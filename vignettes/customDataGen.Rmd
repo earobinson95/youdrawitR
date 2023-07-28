@@ -45,7 +45,7 @@ The `customDataGen()` function returns a list containing the point data and line
 
 ```{r}
 # Print out the custom data
-print(custom_data)
+custom_data
 ```
 Now let's input the data into the `drawr()` function to visualize the processed data. Additionally we can specify the axis labels and titles of the graph, as well as produce a 95% confidence interval since it was generated using customDataGen earlier.
 
@@ -150,7 +150,7 @@ Try to draw the loess regression curve. This might be the most challenging plot 
 
 The `youdrawitR` package offers functionality to plot data on a logarithmic scale. This can be particularly useful when dealing with data that exhibit exponential growth or decay. By transforming such data onto a logarithmic scale, exponential trends can be made linear, which can simplify the task of drawing the trend.
 
-When using the `customDataGen()` function, you can specify log_y = TRUE to indicate that the y variable should be transformed to the logarithmic scale. This will transform the fitted line as log(y) ~ x. If log_y is not specified or is FALSE, the fitted line is not transformed. If using a log transformation remember that all y variable data must be positive.
+When using the `customDataGen()` function, you can specify log_y = TRUE to indicate that the y variable should be transformed to the logarithmic scale. This will transform the fitted line as log(y) ~ x. If log_y is not specified or is FALSE, the fitted line is not transformed. If using a log transformation remember that all y variable data must be positive. Additionally, it is important to note that the `youdrawitR` package currently only supports the log transformation with the linear regression option.
 
 In the `drawr()` function, you can set the linear argument to anything other than "true" to put the graph on a logarithmic scale. You should do this whenever log_y = TRUE in `customDataGen()`. Also, you can specify the base of the logarithm with the log_base argument. If log_base is not provided or is NULL, a natural logarithm (base e) is used. Be sure to use the same log_base value in both `customDataGen()` and `drawr()` functions. In order to make the transformed fitted line compatible with the logarithmic scale, the `drawr()` function exponentiates the y-values of the line data so the fitted line is correctly adjusted to represent the linear trend on the logarithmic scale.
 
@@ -177,7 +177,7 @@ exp_data <- data.frame(
 # Generate custom data for linear regression with log-transformed y
 custom_data_log <- customDataGen(
   df = exp_data,
-  regression_type = "linear",
+  regression_type = "linear", # must be linear for log_y to be TRUE
   log_y = TRUE,
   log_base = NULL
 )
