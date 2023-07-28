@@ -55,7 +55,7 @@ Now let's input the data into the `drawr()` function to visualize the processed 
 drawr(custom_data, 
       title = "Petal Width vs Petal Length", 
       x_lab = "Petal Width",
-      y_lab = "Petal Length",
+      subtitle = "Petal Length",
       conf_int = TRUE)
 ```
 Try drawing for yourself in the plot above! See if you can replicate the regression line. Additionally, you can also draw the 95% confidence interval boundaries using the "new line" button. Have fun experimenting with this interactive plot!

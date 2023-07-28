@@ -19,7 +19,7 @@ const margin = {left: 55,
                // top: options.title ? 40: 10, 
               //  bottom: options.title? 25: 55};
                 top: (options.subtitle) ? 40 : (options.title && options.x_lab) ? 30 : (options.title ? 40 : (options.x_lab ? 15 : 10)),
-                bottom: (options.subtitle) ? 30 : (options.title && options.x_lab) ? 35 : (options.title ? 25 : (options.x_lab ? 35 : 55))};
+                bottom: (options.subtitle) ? 35 : (options.title && options.x_lab) ? 35 : (options.title ? 25 : (options.x_lab ? 35 : 55))};
 
 // define variable default line attributes
 // do not fill the line in (default is filled in black beneath the line)
@@ -476,90 +476,90 @@ function start_drawer(state, reset = true){
   setup_draw_watcher(state.svg, scales, on_drag, on_end);
   
   // Do we have a title?
-    if(state.title){
-      if (state.subtitle) {
-        state.svg.append('text')
-        .at({
-          y: -margin.top/2 - 10,
-          dominantBaseline: 'middle',
-          fontSize: '1.3rem',
-        })
-        .style('font-family', system_font)
-        .text(state.title);
-      }
-      else {
-        state.svg.append('text')
-        .at({
-          y: -margin.top/2,
-          dominantBaseline: 'middle',
-          fontSize: '1.5rem',
-        })
-        .style('font-family', system_font)
-        .text(state.title);
-      }
-    }
-    
-    // Do we have a subtitle?
-    if (state.subtitle){
+  if(state.title){
+    if (state.subtitle) {
       state.svg.append('text')
       .at({
-        y: -margin.top/2 + 10,
+        y: -margin.top/2 - 10,
         dominantBaseline: 'middle',
-        fontSize: '0.8rem',
+        fontSize: '21px',
       })
       .style('font-family', system_font)
-      .text(state.subtitle);
+      .text(state.title);
     }
-    
-    // Do we have an x-axis label?
-    if (state.x_lab) {
-      if (state.subtitle) {
-        state.svg.append('text')
-        .at({
-          x: state.w / 2,
-          y: state.h + margin.bottom,
-          fontSize: '0.8rem',
-          textAnchor: 'middle',
-        })
-        .style('font-family', system_font)
-        .text(state.x_lab);
-      }
-      else {
-        state.svg.append('text')
-        .at({
-          x: state.w / 2,
-          y: state.h + margin.bottom,
-          fontSize: '1rem',
-          textAnchor: 'middle',
-        })
-        .style('font-family', system_font)
-        .text(state.x_lab);
-      }
+    else {
+      state.svg.append('text')
+      .at({
+        y: -margin.top/2,
+        dominantBaseline: 'middle',
+        fontSize: '21px',
+      })
+      .style('font-family', system_font)
+      .text(state.title);
     }
-    
-    // Do we have a y-axis label?
-    if (state.y_lab) {
-      if (state.subtitle) {
-        state.svg.append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("x", 0 - (state.h / 2))
-        .attr("y",  -margin.right - 22)
-        .attr("font-size", "0.8rem")
-        .attr("text-anchor", "middle")
-        .style("font-family", system_font)
-        .text(state.y_lab);
+  }
+  
+  // Do we have a subtitle?
+  if (state.subtitle){
+    state.svg.append('text')
+    .at({
+      y: -margin.top/2 + 10,
+      dominantBaseline: 'middle',
+      fontSize: '13px',
+    })
+    .style('font-family', system_font)
+    .text(state.subtitle);
+  }
+  
+  // Do we have an x-axis label?
+  if (state.x_lab) {
+    if (state.subtitle) {
+      state.svg.append('text')
+      .at({
+        x: state.w / 2,
+        y: state.h + margin.bottom - 4,
+        fontSize: '13px',
+        textAnchor: 'middle',
+      })
+      .style('font-family', system_font)
+      .text(state.x_lab);
     }
-      else {
+    else {
+      state.svg.append('text')
+      .at({
+        x: state.w / 2,
+        y: state.h + margin.bottom - 4,
+        fontSize: '16px',
+        textAnchor: 'middle',
+      })
+      .style('font-family', system_font)
+      .text(state.x_lab);
+    }
+  }
+  
+  // Do we have a y-axis label?
+  if (state.y_lab) {
+    if (state.subtitle) {
       state.svg.append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("x", 0 - (state.h / 2))
-        .attr("y",  -margin.right - 22)
-        .attr("font-size", "1rem")
-        .attr("text-anchor", "middle")
-        .style("font-family", system_font)
-        .text(state.y_lab);
-      }
+      .attr("transform", "rotate(-90)")
+      .attr("x", 0 - (state.h / 2))
+      .attr("y",  -margin.right - 22)
+      .attr("font-size", "13px")
+      .attr("text-anchor", "middle")
+      .style("font-family", system_font)
+      .text(state.y_lab);
+  }
+    else {
+    state.svg.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("x", 0 - (state.h / 2))
+      .attr("y",  -margin.right - 22)
+      .attr("font-size", "16px")
+      .attr("text-anchor", "middle")
+      .style("font-family", system_font)
+      .text(state.y_lab);
     }
+  }
 }
 
   function simplify_data({line_data, x_range, threshold_percentage}) {
