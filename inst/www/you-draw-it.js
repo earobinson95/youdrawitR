@@ -37,7 +37,7 @@ const default_line_attrs = Object.assign({
 
 const conf_int_line_attrs = Object.assign({
   fill: "none",
-  stroke: options.data_line_color || 'steelblue',
+  stroke: options.drawn_line_color || 'steelblue',
   strokeWidth: 2,
   strokeLinejoin: "round",
   strokeLinecap: "round",
@@ -850,12 +850,14 @@ function draw_finished_line({svg, line_data, draw_start, free_draw}, scales){
   const finished_line = state.svg.selectAppend("path.finished_line")
   const lower_bound = state.svg.selectAppend("path.lower_bound")
   const upper_bound = state.svg.selectAppend("path.upper_bound")
+  const shaded_area = state.svg.selectAppend("path.shaded_area");
   
     // Only draw line if there's something to draw.
   if(get_user_line_status(state) === 'unstarted'){
     finished_line.remove();
     lower_bound.remove();
     upper_bound.remove();
+    shaded_area.remove();
     return;
   }
   
@@ -866,17 +868,16 @@ function draw_finished_line({svg, line_data, draw_start, free_draw}, scales){
   .attr("opacity", 0.5)
 
   if (state.conf_int) {
-    lower_bound
-    .datum(lwr)
-    .at(conf_int_line_attrs)
-    .attr("d", scales.line_drawer)
-    .attr("opacity", 0.5)
-    
-    upper_bound
-    .datum(upr)
-    .at(conf_int_line_attrs)
-    .attr("d", scales.line_drawer)
-    .attr("opacity", 0.5)
+    // Defining the area of shaded region
+    var area = d3.area()
+        .x(function(d, i) { return scales.x(d.x); })
+        .y0(function(d, i) { return scales.y(upr[i].y); })
+        .y1(function(d, i) { return scales.y(lwr[i].y); });
+
+    shaded_area
+        .datum(df)
+        .attr("d", area)
+        .style('fill', 'rgba(0,0,255,0.2)');
   }
   
 }

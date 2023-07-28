@@ -1,6 +1,8 @@
 ---
 title: "Examples: linearDataGen"
-output: rmarkdown::html_vignette
+output: 
+  rmarkdown::html_document:
+    theme: "flatly"
 vignette: >
   %\VignetteEncoding{UTF-8}
   %\VignetteIndexEntry{Examples: linearDataGen}
@@ -55,7 +57,7 @@ The `linearDataGen()` function takes several arguments:
 
 -   x_min and x_max are the minimum and maximum x values for the line and point data. Defaults are 0 and 20.
 
--   conf_int is a logical argument specifying whether a 95% confidence interval should be generated for the drawr function. Default is FALSE. If TRUE, user must also specify conf_int = TRUE in the `drawr()` function to generate 95% confidence interval upper and lower boundary lines.
+-   conf_int is a logical argument specifying whether a 95% confidence interval should be generated for the drawr function. Default is FALSE. If TRUE, user must also specify conf_int = TRUE in the `drawr()` function to generate 95% confidence interval area.
 
 The `linearDataGen()` function returns a list containing the point data and line data generated from the parameters. Let's take a look at the data that was generated from the example above:
 
@@ -103,4 +105,4 @@ drawr(
 )
 ```
 
-In the plot above, the dashed lines that are displayed upon completion of the original line (shown by the yellow progress region) represent the lower and upper bounds of the 95% confidence interval for the line of best fit. The user can attempt to draw the upper and lower bounds of the confidence interval using the "New Line" button in the interactive plot. Try it for yourself in the plot above.
+In the plot above, the shaded region that is displayed upon completion of the original line (shown by the yellow progress region) represent the lower and upper bounds of the 95% confidence interval for the line of best fit. The user can attempt to draw the upper and lower bounds of the confidence interval using the "New Line" button in the interactive plot. Try it for yourself in the plot above.

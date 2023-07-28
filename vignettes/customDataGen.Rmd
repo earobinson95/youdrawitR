@@ -1,6 +1,8 @@
 ---
 title: "Examples: customDataGen"
-output: rmarkdown::html_vignette
+output: 
+  rmarkdown::html_document:
+    theme: "flatly"
 vignette: >
   %\VignetteIndexEntry{Examples: customDataGen}
   %\VignetteEngine{knitr::rmarkdown}
@@ -53,7 +55,7 @@ Now let's input the data into the `drawr()` function to visualize the processed 
 drawr(custom_data, 
       title = "Petal Width vs Petal Length", 
       x_lab = "Petal Width",
-      subtitle = "Petal Length",
+      y_lab = "Petal Length",
       conf_int = TRUE)
 ```
 Try drawing for yourself in the plot above! See if you can replicate the regression line. Additionally, you can also draw the 95% confidence interval boundaries using the "new line" button. Have fun experimenting with this interactive plot!
