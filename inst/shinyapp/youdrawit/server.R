@@ -19,6 +19,7 @@ library(colourpicker)
 
 # Define server logic required to draw a histogram
 function(input, output, session) {
+    color = reactive({input$region_color})
     dataSubmitted <- FALSE
     
     if (!dataSubmitted) {
@@ -35,7 +36,8 @@ function(input, output, session) {
           conf_int = input$showConfInterval
         )
         
-        drawr(data, hide_buttons = T, conf_int = input$showConfInterval)
+        drawr(data, hide_buttons = T, conf_int = input$showConfInterval, 
+              draw_region_color = color())
       })
     }
     
@@ -53,8 +55,6 @@ function(input, output, session) {
         updateCheckboxInput(session, "newLine", 
                             label = "New Line", value = FALSE)
       }
-      
-      updateColourInput(session, "region_color", value = "rgba(255,255,0,.8)")
       updateRadioButtons(session, "line_selector", selected = "original")
       shinyjs::hide("dataSelector")
       shinyjs::hide("line_number")
@@ -68,7 +68,6 @@ function(input, output, session) {
         updateCheckboxInput(session, "newLine", 
                             label = "New Line", value = FALSE)
       }
-      updateColourInput(session, "region_color", value = "rgba(255,255,0,.8)")
       updateRadioButtons(session, "line_selector", selected = "original")
       shinyjs::hide("dataSelector")
       shinyjs::hide("line_number")
@@ -169,7 +168,6 @@ function(input, output, session) {
         updateCheckboxInput(session, "newLine", 
                             label = "New Line", value = FALSE)
       }
-      updateColourInput(session, "region_color", value = "rgba(255,255,0,.8)")
       updateRadioButtons(session, "line_selector", selected = "original")
       shinyjs::hide("dataSelector")
       shinyjs::hide("line_number")
@@ -213,10 +211,10 @@ function(input, output, session) {
                             conf_int = input$confInt)
       # Update the drawr output with the processed data
       if (input$confInt) {
-        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, conf_int = TRUE) })
+        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, conf_int = TRUE, draw_region_color = color()) })
       }
       else {
-        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T) })
+        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, draw_region_color = color()) })
       }
       
       dataSubmitted <- TRUE
@@ -231,7 +229,6 @@ function(input, output, session) {
         updateCheckboxInput(session, "newLine", 
                             label = "New Line", value = FALSE)
       }
-      updateColourInput(session, "region_color", value = "rgba(255,255,0,.8)")
       updateRadioButtons(session, "line_selector", selected = "original")
       shinyjs::hide("dataSelector")
       shinyjs::hide("line_number")
@@ -453,10 +450,10 @@ function(input, output, session) {
       
       # Update the drawr output with the processed data
       if ((regression_type == "Linear") && (input$confInt)) {
-        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, conf_int = TRUE) })
+        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, conf_int = TRUE, draw_region_color = color()) })
       }
       else {
-        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T) })
+        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, draw_region_color = color()) })
       }
       dataSubmitted <- TRUE
       # Close the modal dialog
