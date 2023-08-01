@@ -15,6 +15,7 @@ library(readxl)
 library(utils)
 library(stats)
 library(r2d3)
+library(colourpicker)
 
 # Define server logic required to draw a histogram
 function(input, output, session) {
@@ -38,6 +39,10 @@ function(input, output, session) {
       })
     }
     
+    observeEvent(input$region_color, {
+      session$sendCustomMessage("regionColorAction", input$region_color)
+    })
+    
     # Add a reactive value to track whether the reset button was clicked
     resetClicked <- reactiveVal(FALSE)
     
@@ -48,6 +53,8 @@ function(input, output, session) {
         updateCheckboxInput(session, "newLine", 
                             label = "New Line", value = FALSE)
       }
+      
+      updateColourInput(session, "region_color", value = "rgba(255,255,0,.8)")
       updateRadioButtons(session, "line_selector", selected = "original")
       shinyjs::hide("dataSelector")
       shinyjs::hide("line_number")
@@ -61,6 +68,7 @@ function(input, output, session) {
         updateCheckboxInput(session, "newLine", 
                             label = "New Line", value = FALSE)
       }
+      updateColourInput(session, "region_color", value = "rgba(255,255,0,.8)")
       updateRadioButtons(session, "line_selector", selected = "original")
       shinyjs::hide("dataSelector")
       shinyjs::hide("line_number")
@@ -161,6 +169,7 @@ function(input, output, session) {
         updateCheckboxInput(session, "newLine", 
                             label = "New Line", value = FALSE)
       }
+      updateColourInput(session, "region_color", value = "rgba(255,255,0,.8)")
       updateRadioButtons(session, "line_selector", selected = "original")
       shinyjs::hide("dataSelector")
       shinyjs::hide("line_number")
@@ -222,6 +231,7 @@ function(input, output, session) {
         updateCheckboxInput(session, "newLine", 
                             label = "New Line", value = FALSE)
       }
+      updateColourInput(session, "region_color", value = "rgba(255,255,0,.8)")
       updateRadioButtons(session, "line_selector", selected = "original")
       shinyjs::hide("dataSelector")
       shinyjs::hide("line_number")

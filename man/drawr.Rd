@@ -24,6 +24,8 @@ drawr(
   y_lab = "",
   subtitle = "",
   drawn_line_color = "steelblue",
+  true_line_color = "steelblue",
+  draw_region_color = "rgba(255,255,0,.8)",
   x_axis_buffer = 0,
   y_axis_buffer = 0.05,
   show_finished = TRUE,
@@ -67,7 +69,11 @@ drawr(
 
 \item{subtitle}{The subtitle of the plot. (default: "")}
 
-\item{drawn_line_color}{The color of the drawn line. (default: "steelblue")}
+\item{drawn_line_color}{The color of the drawn lines. (default: "steelblue")}
+
+\item{true_line_color}{The color of the true drawn lines and confidence interval region. (default: "steelblue")}
+
+\item{draw_region_color}{The color of the drawing region that displays progress. If NULL, region will be transparent. (default: "rgba(255,255,0,.8)" (yellow))}
 
 \item{x_axis_buffer}{The buffer for the x-axis added to the x range, calculated as a percent of x range. Only used if x_range is NULL, and must be greater than or equal to 0. (default: 0)}
 

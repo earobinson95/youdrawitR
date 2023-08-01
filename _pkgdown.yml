@@ -30,3 +30,5 @@ navbar:
     - text: Extra
     - text: Shiny App
       href: articles/web_only/ShinyApp.html
+    - text: Plot & Button Guide
+      href: articles/customizing.html

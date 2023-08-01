@@ -757,14 +757,25 @@ function draw_rectangle({svg, drawable_points, line_data, draw_start, width, hei
 
     const draw_region = state.svg.selectAppend("rect");
     
-    draw_region
-      .attr("x", drawSpace_start)
-      .attr("width",drawSpace_end - drawSpace_start)
-      .attr("y", 0)
-      .attr("height", state.h)
-      //.style("fill", "#e0f3f3")
-      .style("fill-opacity", 0.4)
-      .style("fill", "rgba(255,255,0,.8)")
+    let draw_region_color = state.draw_region_color !== null && state.draw_region_color !== undefined ? state.draw_region_color : "rgba(0,0,0,0)";
+    
+  draw_region
+    .attr("x", drawSpace_start)
+    .attr("width",drawSpace_end - drawSpace_start)
+    .attr("y", 0)
+    .attr("height", state.h)
+    .style("fill", draw_region_color)
+    .style("fill-opacity", draw_region_color === "rgba(0,0,0,0)" ? 0 : 0.4);
+    
+    if (typeof Shiny !== 'undefined') {
+      Shiny.addCustomMessageHandler('regionColorAction', function(regionColor) {
+        draw_region
+          .style("fill", regionColor)
+          .style("fill-opacity", regionColor === "rgba(0,0,0,0)" ? 0 : 0.4);
+          
+        state.draw_region_color = regionColor;
+      })
+    };
 
     if (typeof tooltip !== 'undefined') {
       svg.on("mousemove", function(d) {
@@ -873,11 +884,22 @@ function draw_finished_line({svg, line_data, draw_start, free_draw}, scales){
         .x(function(d, i) { return scales.x(d.x); })
         .y0(function(d, i) { return scales.y(upr[i].y); })
         .y1(function(d, i) { return scales.y(lwr[i].y); });
+        
+    let data_line_color = state.data_line_color !== null && options.data_line_color !== undefined ? options.data_line_color : 'steelblue';
+    let colorRGB = d3.rgb(data_line_color);
+    
+    // Convert to HSL and increase saturation
+    let colorHSL = d3.hsl(colorRGB);
+    colorHSL.s = Math.min(1, colorHSL.s + 0.3); // Increase saturation by 20% but not more than 1
+    
+    // Convert back to RGB
+    let moreSaturatedColorRGB = d3.rgb(colorHSL);
+    let lighterColor = `rgba(${moreSaturatedColorRGB.r},${moreSaturatedColorRGB.g},${moreSaturatedColorRGB.b},0.2)`;  // 20% opacity
 
     shaded_area
-        .datum(df)
-        .attr("d", area)
-        .style('fill', 'rgba(0,0,255,0.2)');
+      .datum(df)
+      .attr("d", area)
+      .style('fill', lighterColor);
   }
   
 }
