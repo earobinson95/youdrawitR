@@ -11,6 +11,7 @@ library(shiny)
 library(r2d3)
 library(DT)
 library(shinyjs)
+library(colourpicker)
 
 # Define UI for application that draws a histogram
 navbarPage(
@@ -73,7 +74,10 @@ navbarPage(
                 )
               )
             )
-        )
+        ),
+        colourInput("region_color", "Select color of progress region", 
+                    value = "rgba(255,255,0,.8)", 
+                    allowTransparent = TRUE)
       )
     )
   )

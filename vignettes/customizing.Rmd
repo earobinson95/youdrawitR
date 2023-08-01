@@ -1,0 +1,130 @@
+---
+title: "Guide: Plot Customization and Button Usage"
+output: 
+  rmarkdown::html_document:
+    theme: "flatly"
+vignette: >
+  %\VignetteEncoding{UTF-8}
+  %\VignetteIndexEntry{Guide: Plot Customization and Button Usage}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: sentence
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r Setup}
+library(youdrawitR)
+set.seed(123)
+data <- linearDataGen(y_int = 0,
+                      slope = 1,
+                      sigma = 1.5,
+                      N = 30,
+                      conf_int = F)
+```
+
+The YouDrawIt package allows for creating interactive plots where users can make their own predictions and see how they match up to the actual data.
+The package is equipped with a multitude of customization options and this guide will help you to understand how you can customize the plots created by the `drawr()` function and make the most of the button features.
+
+## Customizing The Plot
+
+### Axis Range & Labels
+
+There are two ways to customize the range of values displayed on the x and y axis. Be aware, even if the specified range is smaller than the range of the point data, the line is still fitted for all points in the dataset.
+
+The first way is to specify the `x_range` and `y_range` that you want for the data. If left as NULL (the default), the function will automatically use the range of the max of the line and point data x and y values.
+
+<details>
+<summary>See Example</summary>
+
+```{r}
+drawr(data = data, x_range = c(0, 25), y_range = c(-2, 20))
+```
+
+</details>
+
+The second way is to specify a `x_axis_buffer` or `y_axis_buffer`. This will add a buffer to the axis, as a percent of total range. Thus, your input must be greater than or equal to 0.
+
+<details>
+<summary>See Example</summary>
+
+```{r}
+drawr(data = data, x_axis_buffer = 0.1, y_axis_buffer = 0.1)
+```
+</details>
+
+To add axis labels use the `x_lab` and `y_lab` parameters. To add titles use the `title` and `subtitle` parameters. Here is an example of how to use these parameters.
+
+<details>
+<summary>See Example</summary>
+
+```{r}
+drawr(data = data, title = "Sales Over Time", x_lab = "Time", y_lab = "Sales")
+```
+
+</details>
+
+### Color Customization
+
+There are numerous visualization parameters too change the appearance of the plot and the most notable are the changes you can make to the colors. These options include:
+
+1. **drawn_line_color:** This parameter changes the color of the lines that the user draws on the plot.
+
+2. **true_line_color:** This parameter changes the color of the actual line and optionally confidence interval region in the plot, which is revealed when the user clicks the 'Show True Line' button.
+
+3. **draw_region_color:** This parameter changes the color of the drawing region, which is the area that shows the user's progress as they draw the line.
+
+The default `drawn_line_color` and `true_line_color` are "steelblue" let's generate a confidence interval to truly showcase how the color changes. Remember, you must generate the confidence interval in the data generator first to display it in the `drawr()` function. In this example we will use a "red" drawing color and a "purple" true_line/conf_int color. Remember to see the true line, you must complete complete the graph (shown by the yellow progress region). Try for yourself in the example below!
+
+<details>
+<summary>See Example</summary>
+
+```{r}
+# Generate new data with confidence interval
+conf_data <- linearDataGen(y_int = 0,
+                      slope = 1,
+                      sigma = 2.5,
+                      N = 20,
+                      conf_int = T)
+
+# Create plot with new color paramaters and display confidence interval region
+drawr(data = conf_data,
+      drawn_line_color = "red",
+      true_line_color = "purple",
+      conf_int = T)
+```
+
+</details>
+
+Changing the `draw_region_color` is also an option. This can be changed to any color and can even be removed by choosing "white" or NULL, however this is not recommended as the progress region has been made to help the user when completing the line. If removing the draw region, it is recommended to use `show_tooltip = TRUE` so the user has a way to know if they have skipped over a portion of the line. This tooltip will display progress when hovering over the area that has not yet been drawn over with the connected line.
+
+<details>
+<summary>Example with different draw_region_color</summary>
+
+```{r}
+drawr(data = data,
+      draw_region_color = "green")
+```
+
+</details>
+
+<details>
+<summary>Example with draw region removed</summary>
+
+```{r}
+drawr(data = data,
+      draw_region_color = NULL,
+      show_tooltip = TRUE)
+```
+
+</details>
+
+For more information on other plot customization options, make sure to go to the 'drawr()' function documentation.
+
+## Understanding and Using the Buttons

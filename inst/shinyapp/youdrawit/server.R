@@ -15,9 +15,11 @@ library(readxl)
 library(utils)
 library(stats)
 library(r2d3)
+library(colourpicker)
 
 # Define server logic required to draw a histogram
 function(input, output, session) {
+    color = reactive({input$region_color})
     dataSubmitted <- FALSE
     
     if (!dataSubmitted) {
@@ -34,9 +36,14 @@ function(input, output, session) {
           conf_int = input$showConfInterval
         )
         
-        drawr(data, hide_buttons = T, conf_int = input$showConfInterval)
+        drawr(data, hide_buttons = T, conf_int = input$showConfInterval, 
+              draw_region_color = color())
       })
     }
+    
+    observeEvent(input$region_color, {
+      session$sendCustomMessage("regionColorAction", input$region_color)
+    })
     
     # Add a reactive value to track whether the reset button was clicked
     resetClicked <- reactiveVal(FALSE)
@@ -204,10 +211,10 @@ function(input, output, session) {
                             conf_int = input$confInt)
       # Update the drawr output with the processed data
       if (input$confInt) {
-        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, conf_int = TRUE) })
+        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, conf_int = TRUE, draw_region_color = color()) })
       }
       else {
-        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T) })
+        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, draw_region_color = color()) })
       }
       
       dataSubmitted <- TRUE
@@ -318,26 +325,51 @@ function(input, output, session) {
     
     observeEvent(input$submitData, {
       shinyjs::hide("showConfInterval")
-      # Rename the columns based on user input or set to NULL if no input
-      if (is.null(input$xColumn) || input$xColumn == "" || is.null(input$yColumn) || input$yColumn == "") {
-        colnames <- NULL
-      } else {
-        colnames <- c(input$xColumn, input$yColumn)
-      }
-      if (input$dataInputOption == "Upload") {
-        if (!is.null(input$dataFile$datapath)) {
-          file_ext <- tools::file_ext(input$dataFile$name)
-          if (file_ext != "txt") {
-            dataInput <- switch(file_ext,
-                                  "csv" = read.csv(input$dataFile$datapath, header = !is.null(colnames)),
-                                  "tsv" = read.table(input$dataFile$datapath, sep = "\t", header = !is.null(colnames), fill = TRUE),
-                                  "xls" = readxl::read_excel(input$dataFile$datapath, col_names = !is.null(colnames)),
-                                  "xlsx" = readxl::read_excel(input$dataFile$datapath, col_names = !is.null(colnames)),
-                                  # Add more file types and their corresponding read functions as needed
-                                  stop("Unsupported file type.")
-              )
-          }
-          else {
+      dataInput <- tryCatch({
+        # Rename the columns based on user input or set to NULL if no input
+        if (is.null(input$xColumn) || input$xColumn == "" || is.null(input$yColumn) || input$yColumn == "") {
+          colnames <- NULL
+        } else {
+          colnames <- c(input$xColumn, input$yColumn)
+        }
+        
+        if (input$dataInputOption == "Upload") {
+          if (!is.null(input$dataFile$datapath)) {
+            file_ext <- tools::file_ext(input$dataFile$name)
+            if (file_ext != "txt") {
+              dataInput <- switch(file_ext,
+                                    "csv" = read.csv(input$dataFile$datapath, header = !is.null(colnames)),
+                                    "tsv" = read.table(input$dataFile$datapath, sep = "\t", header = !is.null(colnames), fill = TRUE),
+                                    "xls" = readxl::read_excel(input$dataFile$datapath, col_names = !is.null(colnames)),
+                                    "xlsx" = readxl::read_excel(input$dataFile$datapath, col_names = !is.null(colnames)),
+                                    # Add more file types and their corresponding read functions as needed
+                                    stop("Unsupported file type.")
+                )
+            }
+            else {
+              # Set the delimiter based on user input (default to space)
+              if (grepl("\t", input$dataInput)) {
+                separator <- "\t"
+              } else if (grepl(";", input$dataInput)) {
+                separator <- ";"
+              } else if (grepl(":", input$dataInput)) {
+                separator <- ":"
+              } else if (grepl("\\|", input$dataInput)) {
+                separator <- "|"
+              } else if (grepl(",", input$dataInput)) {
+                separator <- ","
+              } else {
+                separator <- " "
+              }
+              read.table(input$dataFile$datapath, header = !is.null(colnames), sep = separator, fill = TRUE)
+            }
+          } else {
+            stop("No file selected.")
+          } 
+          } else {
+            if (is.null(input$dataInput) || input$dataInput == "") {
+              stop("No data entered.")
+            }
             # Set the delimiter based on user input (default to space)
             if (grepl("\t", input$dataInput)) {
               separator <- "\t"
@@ -352,81 +384,76 @@ function(input, output, session) {
             } else {
               separator <- " "
             }
-            dataInput <- read.table(input$dataFile$datapath, header = !is.null(colnames), sep = separator, fill = TRUE)
-            print(dataInput)
-          }
-        } else {
-          stop("No file selected.")
-        } 
-        } else {
-          if (is.null(input$dataInput) || input$dataInput == "") {
-            stop("No data entered.")
-          }
-          # Set the delimiter based on user input (default to space)
-          if (grepl("\t", input$dataInput)) {
-            separator <- "\t"
-          } else if (grepl(";", input$dataInput)) {
-            separator <- ";"
-          } else if (grepl(":", input$dataInput)) {
-            separator <- ":"
-          } else if (grepl("\\|", input$dataInput)) {
-            separator <- "|"
-          } else if (grepl(",", input$dataInput)) {
-            separator <- ","
-          } else {
-            separator <- " "
-          }
-          
-          # Use the text entered in the text area input
-          dataInput <- read.table(text = input$dataInput, header = !is.null(colnames), sep = separator, fill = TRUE)
-        }
+            
+            # Use the text entered in the text area input
+            read.table(text = input$dataInput, header = !is.null(colnames), sep = separator, fill = TRUE)
+          }  
+        }, error = function(e) {
+          showNotification(paste("Error reading data:", e$message), type = "error")
+          removeModal()
+          return(NULL)  # return NULL on error
+        })
+      
+      # Stop execution if an error occurred while reading data
+      if(is.null(dataInput)) return()
+      
       # Get the selected regression type
       regression_type <- input$regressionType
-      if (!is.null(colnames)) {
-        if (regression_type == "Polynomial") {
-          data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, degree = input$degree)
-        }
-        else if (regression_type == "Logistic") {
-          if (!is.null(input$successLevel) && input$successLevel != "") {
-            data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, success_level = input$successLevel)
+      
+      data <- tryCatch({
+        if (!is.null(colnames)) {
+          if (regression_type == "Polynomial") {
+            customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, degree = input$degree)
+          }
+          else if (regression_type == "Logistic") {
+            if (!is.null(input$successLevel) && input$successLevel != "") {
+              customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, success_level = input$successLevel)
+            }
+            else {
+              customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type)
+            }
+          }
+          else if (regression_type == "Loess") {
+            customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, degree = input$degree, span = input$span)
           }
           else {
-            data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type)
+            customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, conf_int = input$confInt)
           }
         }
-        else if (regression_type == "Loess") {
-          data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, degree = input$degree, span = input$span)
-        }
         else {
-          data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, conf_int = input$confInt)
-        }
-      }
-      else {
-        if (regression_type == "Polynomial") {
-          data <- customDataGen(dataInput, regression_type = regression_type, degree = input$degree)
-        }
-        else if (regression_type == "Logistic") {
-          if (!is.null(input$successLevel) && input$successLevel != "") {
-            data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, success_level = input$successLevel)
+          if (regression_type == "Polynomial") {
+            customDataGen(dataInput, regression_type = regression_type, degree = input$degree)
+          }
+          else if (regression_type == "Logistic") {
+            if (!is.null(input$successLevel) && input$successLevel != "") {
+              customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type, success_level = input$successLevel)
+            }
+            else {
+              customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type)
+            }
+          }
+          else if (regression_type == "Loess") {
+            customDataGen(dataInput, regression_type = regression_type, degree = input$degree, span = input$span)
           }
           else {
-            data <- customDataGen(dataInput, colnames[1], colnames[2], regression_type = regression_type)
+            customDataGen(dataInput, regression_type = regression_type, conf_int = input$confInt)
           }
-        }
-        else if (regression_type == "Loess") {
-          data <- customDataGen(dataInput, regression_type = regression_type, degree = input$degree, span = input$span)
-        }
-        else {
-          data <- customDataGen(dataInput, regression_type = regression_type, conf_int = input$confInt)
-        }
-      }
+          }
+        }, error = function(e) {
+          showNotification(paste("Error generating data:", e$message), type = "error")
+          removeModal()
+          return(NULL)  # return NULL on error
+        })
+      
+      # Stop execution if an error occurred while generating data
+      if(is.null(data)) return()
       
       # Update the drawr output with the processed data
       if ((regression_type == "Linear") && (input$confInt)) {
-        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, conf_int = TRUE) })
+        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, conf_int = TRUE, draw_region_color = color()) })
       }
       else {
-        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T) })
+        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, draw_region_color = color()) })
       }
       dataSubmitted <- TRUE
       # Close the modal dialog
