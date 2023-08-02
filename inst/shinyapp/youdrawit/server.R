@@ -20,6 +20,7 @@ library(colourpicker)
 # Define server logic required to draw a histogram
 function(input, output, session) {
     color = reactive({input$region_color})
+
     dataSubmitted <- FALSE
     
     if (!dataSubmitted) {
@@ -43,6 +44,31 @@ function(input, output, session) {
     
     observeEvent(input$region_color, {
       session$sendCustomMessage("regionColorAction", input$region_color)
+      
+      session$sendCustomMessage("resetAction", "true")
+      if (input$mybutton %% 2 == 1) { # If button has been clicked odd number of times
+        resetClicked(TRUE)
+        updateActionButton(session, "mybutton", icon = icon("pencil"), label = "Add New Line")
+        removeCssClass("mybutton", "red-button")
+        addCssClass("mybutton", "normal-button")
+      }
+      updateRadioButtons(session, "line_selector", selected = "original")
+      shinyjs::hide("dataSelector")
+      shinyjs::hide("line_number")
+      shinyjs::hide("recordedDataSection")
+      
+      session$onFlushed(once=TRUE, function() {
+        session$sendCustomMessage("finishedColorAction", isolate(input$finished_color))
+        session$sendCustomMessage("drawColorAction", isolate(input$draw_color))
+      })
+    })
+    
+    observeEvent(input$draw_color, {
+      session$sendCustomMessage("drawColorAction", input$draw_color)
+    })
+    
+    observeEvent(input$finished_color, {
+      session$sendCustomMessage("finishedColorAction", input$finished_color)
     })
     
     # Add a reactive value to track whether the reset button was clicked
@@ -50,38 +76,57 @@ function(input, output, session) {
     
     observeEvent(input$reset, {
       session$sendCustomMessage("resetAction", "true")
-      if (input$newLine) {
+      if (input$mybutton %% 2 == 1) { # If button has been clicked odd number of times
         resetClicked(TRUE)
-        updateCheckboxInput(session, "newLine", 
-                            label = "New Line", value = FALSE)
+        updateActionButton(session, "mybutton", icon = icon("pencil"), label = "Add New Line")
+        removeCssClass("mybutton", "red-button")
+        addCssClass("mybutton", "normal-button")
       }
       updateRadioButtons(session, "line_selector", selected = "original")
       shinyjs::hide("dataSelector")
       shinyjs::hide("line_number")
       shinyjs::hide("recordedDataSection")
+      
+      session$onFlushed(once=TRUE, function() {
+        session$sendCustomMessage("finishedColorAction", isolate(input$finished_color))
+        session$sendCustomMessage("drawColorAction", isolate(input$draw_color))
+      })
     })
     
     observeEvent(input$showConfInterval, {
       session$sendCustomMessage("resetAction", "true")
-      if (input$newLine) {
+      if (input$mybutton %% 2 == 1) { # If button has been clicked odd number of times
         resetClicked(TRUE)
-        updateCheckboxInput(session, "newLine", 
-                            label = "New Line", value = FALSE)
+        updateActionButton(session, "mybutton", icon = icon("pencil"), label = "Add New Line")
+        removeCssClass("mybutton", "red-button")
+        addCssClass("mybutton", "normal-button")
       }
       updateRadioButtons(session, "line_selector", selected = "original")
       shinyjs::hide("dataSelector")
       shinyjs::hide("line_number")
       shinyjs::hide("recordedDataSection")
+      
+      session$onFlushed(once=TRUE, function() {
+        session$sendCustomMessage("finishedColorAction", isolate(input$finished_color))
+        session$sendCustomMessage("drawColorAction", isolate(input$draw_color))
+      })
     })
 
     # Observe the newLine checkbox and only send message when it's clicked
-    observeEvent(input$newLine, {
+    observeEvent(input$mybutton, {
       if (!resetClicked()) {
-        if (input$newLine) {
-          updateCheckboxInput(session, "newLine", label = "Stop Drawing", value = TRUE)
+        if(input$mybutton %% 2 == 1) {
+          updateActionButton(session, "mybutton", icon = icon("stop-circle"),
+                             label = "Stop Drawing")
+          removeClass("mybutton", "normal-button")
+          addCssClass("mybutton", "red-button")
           session$sendCustomMessage("newLine", "true")
         } else {
-          updateCheckboxInput(session, "newLine", label = "New Line", value = FALSE)
+          updateActionButton(session, "mybutton", 
+                             icon = icon("pencil"),
+                             label = "Add New Line")
+          removeClass("mybutton", "red-button")
+          addCssClass("mybutton", "normal-button")
           session$sendCustomMessage("newLine", "false")
         }
       }
@@ -163,15 +208,20 @@ function(input, output, session) {
     
     observeEvent(input$simulateData, {
       session$sendCustomMessage("resetAction", "true")
-      if (input$newLine) {
+      if (input$mybutton %% 2 == 1) { # If button has been clicked odd number of times
         resetClicked(TRUE)
-        updateCheckboxInput(session, "newLine", 
-                            label = "New Line", value = FALSE)
+        updateActionButton(session, "mybutton", icon = icon("pencil"), label = "Add New Line")
+        removeCssClass("mybutton", "red-button")
+        addCssClass("mybutton", "normal-button")
       }
       updateRadioButtons(session, "line_selector", selected = "original")
       shinyjs::hide("dataSelector")
       shinyjs::hide("line_number")
       shinyjs::hide("recordedDataSection")
+      session$onFlushed(once=TRUE, function() {
+        session$sendCustomMessage("finishedColorAction", isolate(input$finished_color))
+        session$sendCustomMessage("drawColorAction", isolate(input$draw_color))
+      })
       showModal(
         modalDialog(
           title = "Simulate Linear Data Parameters",
@@ -214,8 +264,13 @@ function(input, output, session) {
         output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, conf_int = TRUE, draw_region_color = color()) })
       }
       else {
-        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, draw_region_color = color()) })
+        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, draw_region_color = color) })
       }
+      
+      session$onFlushed(once=TRUE, function() {
+        session$sendCustomMessage("finishedColorAction", isolate(input$finished_color))
+        session$sendCustomMessage("drawColorAction", isolate(input$draw_color))
+      })
       
       dataSubmitted <- TRUE
       # Close the modal dialog
@@ -224,15 +279,20 @@ function(input, output, session) {
     
     observeEvent(input$inputData, {
       session$sendCustomMessage("resetAction", "true")
-      if (input$newLine) {
+      if (input$mybutton %% 2 == 1) { # If button has been clicked odd number of times
         resetClicked(TRUE)
-        updateCheckboxInput(session, "newLine", 
-                            label = "New Line", value = FALSE)
+        updateActionButton(session, "mybutton", icon = icon("pencil"), label = "Add New Line")
+        removeCssClass("mybutton", "red-button")
+        addCssClass("mybutton", "normal-button")
       }
       updateRadioButtons(session, "line_selector", selected = "original")
       shinyjs::hide("dataSelector")
       shinyjs::hide("line_number")
       shinyjs::hide("recordedDataSection")
+      session$onFlushed(once=TRUE, function() {
+        session$sendCustomMessage("finishedColorAction", isolate(input$finished_color))
+        session$sendCustomMessage("drawColorAction", isolate(input$draw_color))
+      })
       showModal(
         modalDialog(
           fluidRow(
@@ -450,11 +510,15 @@ function(input, output, session) {
       
       # Update the drawr output with the processed data
       if ((regression_type == "Linear") && (input$confInt)) {
-        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, conf_int = TRUE, draw_region_color = color()) })
+        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, conf_int = TRUE, draw_region_color = color) })
       }
       else {
-        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, draw_region_color = color()) })
+        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, draw_region_color = color) })
       }
+      session$onFlushed(once=TRUE, function() {
+        session$sendCustomMessage("finishedColorAction", isolate(input$finished_color))
+        session$sendCustomMessage("drawColorAction", isolate(input$draw_color))
+      })
       dataSubmitted <- TRUE
       # Close the modal dialog
       removeModal()
@@ -477,4 +541,5 @@ function(input, output, session) {
     if (!dataSubmitted) {
       output$shinydrawr <- r2d3::renderD3({ drawr_output() })
     }
+    
   }

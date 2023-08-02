@@ -44,6 +44,49 @@ const conf_int_line_attrs = Object.assign({
   strokeDasharray: "10, 20"
 }, options.line_style);
 
+if (typeof Shiny !== 'undefined') {
+  Shiny.addCustomMessageHandler('finishedColorAction', function(finished_color) {
+    if (finished_color !== "steelblue") {
+      finished_line = state.svg.select(".finished_line")
+      
+      default_line_attrs.stroke = finished_color
+      
+      finished_line
+        .style("stroke", finished_color)
+        
+      if (state.conf_int) {
+        shaded_area = state.svg.select(".shaded_area")
+        let colorRGB = d3.rgb(finished_color);
+        
+        // Convert to HSL and increase saturation
+        let colorHSL = d3.hsl(colorRGB);
+        colorHSL.s = Math.min(1, colorHSL.s + 0.3); // Increase saturation by 20% but not more than 1
+        
+        // Convert back to RGB
+        let moreSaturatedColorRGB = d3.rgb(colorHSL);
+        let lighterColor = `rgba(${moreSaturatedColorRGB.r},${moreSaturatedColorRGB.g},${moreSaturatedColorRGB.b},0.2)`;  // 20% opacity
+        shaded_area
+          .style("fill", lighterColor)
+          
+          state.data_line_color = finished_color
+          options.data_line_color = finished_color
+      }
+    }
+  })
+  
+  Shiny.addCustomMessageHandler('drawColorAction', function(draw_color) {
+    if (draw_color !== "steelblue") {
+      user_line = state.svg.select(".user_line")
+      
+      state.drawn_line_color = draw_color;
+      
+      user_line.style("stroke", draw_color)
+      
+      conf_int_line_attrs.stroke = draw_color;
+    }
+  })
+};
+
 // defines a changing variable called state??
 // provides the data from top
 // appends the svg group and moves it to the correct location...
