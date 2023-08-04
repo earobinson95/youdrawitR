@@ -22,32 +22,35 @@ The "Can 'You Draw It'?" app is an interactive Shiny web application that allows
 
 ### Main Interface
 
-The main interface comprises a plot that users can interactively draw lines on. The interface also includes several buttons and options, such as:
+The main interface  consists of a plot that users can interactively draw lines on. The interface also includes several buttons and options, such as:
 
--   Input Data: Upload your data via file upload or text box. A pop-up for options will display once the user presses the button.
--   Simulate Data: Create simulated data. A pop-up for options will display once the user presses the button.
--   Reset: Clear all user-drawn lines and reset the progress.
--   New Line Checkbox: Switch between drawing a new line or extending the original line.
--   Show/Hide Tooltip Checkbox: Toggles the visibility of the tooltip.
--   Confidence Interval Checkbox: Toggles the generation of the confidence intervals.
+-   **Input Data:** Upload your data via file upload or text box. A pop-up for options will display once the user presses the button.
+-   **Simulate Data:** Create simulated data. A pop-up for options will display once the user presses the button.
+-   **Reset:** Clear all user-drawn lines and reset the progress.
+-   **Add New Line/Stop Drawing Button:** Clicking this button initiates the drawing of a new line, turning the button red. Clicking it again, now labeled "Stop Drawing", concludes the new line and reverts back to extending the original line. Users cannot edit a line once concluded.
+-   **Show/Hide Tooltip Checkbox:** Toggles the visibility of the tooltip.
+-   **Confidence Interval Checkbox:** Toggles the generation of the confidence intervals.
+-   **Change color Checkbox:** Enables users to change colors for different parts of the app, including the progress region color, drawn line color, and regression line & confidence interval color (which display upon completion of drawn line). A drop-down menu and color palette appear upon checking this box.
 
 ### Recorded Data
 
-Once the user has completed the graph (this is shown by the yellow progress region), the recorded x and y data of the user lines will be shown. You can select which data you want to display: the original line or new user-drawn lines, if it exists. If multiple new user-drawn lines were drawn you can also select the line data you would like to display using the slider input, which is by precedence of when the line was drawn (so the first new user-drawn line will be number 1 etc). The user can then save this data to their local device using the **Save Data** button. Clicking this button will download the data that the user is currently viewing.
+Once the user has completed the graph (indicated by the progress region), the recorded x and y data of the user lines will be shown. You can select which data you want to display: the original line or new user-drawn lines, if it exists. If multiple new user-drawn lines were drawn you can also select the line data you would like to display using the slider input, which is by precedence of when the line was drawn (so the first new user-drawn line will be number 1 etc). The user can then save this data to their local device using the **Save Data** button. Clicking this button will download the data that the user is currently viewing.
 
 ## How To Use
 
 1.  Toggle the display of the tooltip and confidence intervals with the respective checkboxes.
 
-2.  Optionally, load your data by clicking Input Data or create simulated data by clicking Simulate Data and choosing any of the options displayed.
+2. Customize the color of various components using the "Change color" checkbox. Select the component you want to change and pick a color from the palette.
 
-3.  Draw a line by clicking and dragging your mouse across the plot. To add a new line line, click the new line checkbox. This will be the current drawing line until you click stop drawing (then the current drawing line will go back to original line). Clicking again will add a new line. Users cannot go back to a newly drawn line once they stop drawing.
+3.  Optionally, load your data by clicking Input Data or create simulated data by clicking Simulate Data and choosing any of the options displayed.
 
-4.  Choose your drawn line data by selecting "Original line" or New lines" in the "Select data to display" section. Use the slider to select the line you want to display.
+4.  Draw a line by clicking and dragging your mouse across the plot. To add a new line line, click the "Add New Line" button. This will be the current drawing line until you click stop drawing (then the current drawing line will go back to original line). Clicking again will add a new line. Users cannot go back to a newly drawn line once they stop drawing. Changing the color of the drawn line will only change the original and all new added lines, any previously added drawn lines will remain their original color.
 
-5.  Save the recorded data for later use by clicking Save Data.
+5.  Choose your drawn line data by selecting "Original line" or New lines" in the "Select data to display" section. Use the slider to select the line you want to display.
 
-6.  Click Reset to clear all user-drawn lines and reset the application.
+6.  Save the recorded data for later use by clicking Save Data.
+
+7.  Click Reset to clear all user-drawn lines and reset the application.
 
 To run shiny app in R the user can copy this code:
 
