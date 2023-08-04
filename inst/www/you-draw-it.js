@@ -38,7 +38,7 @@ const default_line_attrs = Object.assign({
 const conf_int_line_attrs = Object.assign({
   fill: "none",
   stroke: options.drawn_line_color || 'steelblue',
-  strokeWidth: 2,
+  strokeWidth: 2.5,
   strokeLinejoin: "round",
   strokeLinecap: "round",
   strokeDasharray: "10, 20"
@@ -270,6 +270,7 @@ function start_drawer(state, reset = true){
   var paths = [];
   var lineGens = [];
   let newLineData = [];
+  let newLineColor = null;
   
   function newLine() {
     if (isDrawing) {
@@ -279,8 +280,9 @@ function start_drawer(state, reset = true){
       // Stop drawing and remove new draw watcher
       isDrawing = false;
       if (!state.hide_buttons) {
-      buttonText.text("New Line");
-        buttonRect.transition().duration(200).style("fill", "#ECECEC");
+        buttonText.text("New Line");
+          buttonRect.transition().duration(200).style("fill", "#ECECEC");
+        svg.select(".color-palette").style("display", "none");
       }
       draw_watcher.remove();
   
@@ -299,6 +301,82 @@ function start_drawer(state, reset = true){
     if (!state.hide_buttons) {
       buttonText.text("Stop Drawing");
       buttonRect.transition().duration(200).style("fill", "red");
+          // Define the colors for the palette.
+    var colors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b"];
+    
+    // Define the width and height of each color block.
+    var blockWidth = 30, blockHeight = 30;
+    
+    // Define the positions for each color block.
+    var positions = [
+        {x: 0, y: 0}, {x: blockWidth, y: 0}, {x: 2 * blockWidth, y: 0},  // First row
+        {x: 0, y: blockHeight}, {x: blockWidth, y: blockHeight}, {x: 2 * blockWidth, y: blockHeight}  // Second row
+    ];
+
+    // Create the color palette if it doesn't exist.
+    var colorPalette = svg.select(".color-palette");
+    if (colorPalette.empty()) {
+        colorPalette = svg.append("g")
+            .attr("class", "color-palette")
+            .attr("transform", `translate(${state.w + margin.right + margin.left}, ${margin.top + 135})`)  // Position it below the New Line button.
+            .style("display", "block");  // Hide it initially.
+            
+        // Create an outer border for the color palette.
+        colorPalette.append("rect")
+          .attr("x", -5)  // Slightly larger than the color blocks and title.
+          .attr("y", -20)  // Enough to include the title.
+          .attr("width", blockWidth * 3 + 10)  // Again, slightly larger.
+          .attr("height", blockHeight * 2 + 25)  // Enough to include the title.
+          .attr("rx", 5)  // Rounded corners.
+          .attr("ry", 5)  // Rounded corners.
+          .style("fill", "#ECECEC")  // Same color as the background.
+          .style("stroke", "black")  // Black border.
+          .style("stroke-width", 2);  // Border thickness.
+        
+        // Create a title for the color palette.
+        colorPalette.append("text")
+          .attr("x", blockWidth * 3 / 2)
+          .attr("y", -5)  // Position the title above the color blocks.
+          .attr("text-anchor", "middle")  // Center the text.
+          .style("font-size", "14px")
+          .text("Line Color");
+          
+        colorPalette.append("rect")
+          .attr("width", blockWidth * 3)
+          .attr("height", blockHeight * 2)
+          .style("fill", "none")
+          .style("stroke", "black")
+          .style("stroke-width", 2);
+          
+        // Create color blocks.
+        colors.forEach(function(color, i) {
+          colorPalette.append("rect")
+              .attr("x", positions[i].x)
+              .attr("y", positions[i].y)
+              .attr("width", blockWidth)
+              .attr("height", blockHeight)
+              .attr("fill", color)
+              .style("stroke", "black")
+              .style("stroke-width", 1)
+              .on("click", function() {
+                path.attr("stroke", color);
+              // Hide the palette when a color is selected.
+              colorPalette.style("display", "none");
+            })
+            .on("mouseover", function() {
+               // Create a darker color on mouseover
+              let darkerColor = d3.rgb(d3.color(color)).darker(0.7);
+              d3.select(this).style("fill", darkerColor);
+            })
+            .on("mouseout", function() {
+              // Return to original color on mouseout
+              d3.select(this).style("fill", color);
+            });
+        });
+      }
+      else {
+        colorPalette.style("display", "block")
+      }
     }
     
     // Detach the original event handlers
@@ -310,7 +388,7 @@ function start_drawer(state, reset = true){
     
     // Store the line generator
     lineGens.push(lineGen);
-  
+    
     path = state.svg.append('path')
       .at(conf_int_line_attrs)
       .attr("stroke-dasharray", "7, 5")
@@ -404,6 +482,7 @@ function start_drawer(state, reset = true){
       }
     });
     
+    
     var buttonText = button.append("text")
       .attr("x", 40)
       .attr("y", 15)
@@ -414,7 +493,7 @@ function start_drawer(state, reset = true){
       .text("New Line");
 
     // add draw line and reset buttons
-        const resetButton = svg.append("g")
+    const resetButton = svg.append("g")
       .attr("class", "button")
       .style("cursor", "pointer")
       .attr("transform", `translate(${state.w + margin.right + margin.left}, ${margin.top + 35})`)
@@ -462,6 +541,9 @@ function start_drawer(state, reset = true){
       lineGens = [];
       if (isDrawing) {
         newLine();
+      }
+      if (!state.hide_buttons) {
+        svg.select(".color-palette").remove();
       }
       start_drawer(state, reset = true)
     }

@@ -23,7 +23,7 @@ First, load the youdrawitR package
 library(youdrawitR)
 ```
 
-Then, you can generate data to use with the `drawr()` function using either the `linearDataGen()` or `customDataGen()` functions. The `linearDataGen()` function is used to simulate a linear dataset in this example.
+Then, you can generate data to use with the `drawr()` function using either the `linearDataGen()` or `customDataGen()` functions. The `linearDataGen()` function is used to simulate a linear dataset and generate a confidence interval in this example.
 
 ```r
 data <- linearDataGen(y_int = -4,
@@ -31,15 +31,16 @@ data <- linearDataGen(y_int = -4,
                       sigma  = 2.8,
                       x_min   = 0,
                       x_max   = 20,
-                      N       = 40)
+                      N       = 40,
+                      conf_int = TRUE)
 ```
 
-Lastly, the data can be entered into the `drawr()` function where the user can draw a line to predict a trend in the data. There are many visual parameters the users can change in the `drawr()` function, in this example the progress tooltip is shown.
+Lastly, the data can be entered into the `drawr()` function where the user can draw a line to predict a trend in the data. There are many visual parameters the users can change in the `drawr()` function, in this example the progress tooltip and generated confidence interval from `linearDataGen()` is shown.
 
 ```r
-drawr(data, show_tooltip = TRUE)
+drawr(data, show_tooltip = TRUE, conf_int = TRUE)
 ```
 
-Here is the example of using the interactive graphic. The new line functionality has been used in this example to draw upper and lower bounds of a 95% confidence interval.
+Here is the example of using the interactive graphic. The new line functionality has been used in this example to predict the upper and lower bounds of the generated 95% confidence interval. The color palette does not need to be used when using the new line functionality, the default drawing color when not defined in `drawr()` function is "steelblue".
 
 ![](man/figures/drawr-example-1.gif)

@@ -54,6 +54,9 @@ navbarPage(
                   .red-button:hover {
                     color: white;
                     background-color: #B30000;
+                  }
+                  .hidden-on-load {
+                    display: none;
                   }"
                 )
               ),
@@ -81,6 +84,7 @@ navbarPage(
                 style = "position: absolute; top: 0px; left: 750px;",
                 conditionalPanel(
                   condition = "input.changeColor == true",
+                  class = "hidden-on-load",
                 selectInput("colorChoice", "Select color to change", 
                             choices = list("Progress region color" = "region_color",
                                            "Drawn line color" = "draw_color",

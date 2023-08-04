@@ -125,6 +125,58 @@ drawr(data = data,
 
 </details>
 
-For more information on other plot customization options, make sure to go to the 'drawr()' function documentation.
+For more information on other plot customization options, make sure to go to the `drawr()` function documentation.
 
 ## Understanding and Using the Buttons
+
+The `drawr()` function provides three main interactive buttons: Reset, Download Data, and New Line/Stop Drawing. Here's how you can utilize them:
+
+-  **Reset Button:** Clicking this button will erase all user-drawn lines, and allows you to start over from scratch.
+
+-  **Download Data Button:** This button downloads your data as a JSON text file. The downloaded data includes both the original line and any new lines drawn by the user. It will split the data in to two section in the text file, making it easy to find. Just look for "original line: " for the original line and "new lines: " for any added lines.
+
+-  **New Line/Stop Drawing Button:** This button toggles between adding a new line and extending the original line. Clicking it once initiates the drawing of a new line, and the button turns red. A second click, when the button reads "Stop Drawing", concludes the new line's drawing and reverts back to modifying the original line. Keep in mind, once a new line is concluded, it can no longer be edited.
+
+-  **Line Color Picker:** Upon clicking the "New Line" button, a color palette appears under the buttons. This palette lets you pick the color for your new line, enhancing visual distinction between different lines. Simply click on the color block of your choice before starting to draw or while drawing. The color palette will disappear once a color is selected or when you click "Stop Drawing" or "Reset". If no color is chosen the default will be "steelblue".
+
+Additionally, you can hide these buttons to reduce interface clutter or when you don't need their functionality. This can be achieved by setting the `hide_buttons = TRUE` parameter in the `drawr()` function.
+
+Here is an example of how to hide the buttons in your output:
+
+<details>
+<summary>See Example</summary>
+
+```{r}
+drawr(data = data,
+      hide_buttons = TRUE)
+```
+
+</details>
+
+Now that you are familiar with the functionality of the buttons in the `drawr()` function, why not try them out for yourself in the example below? In the following plot, use the "New Line/Stop Drawing" button to start and stop drawing new lines, the "Download Data" button to save your work, and the "Reset" button to clear all lines and restart if you mess up.
+
+<details>
+<summary>See Example</summary>
+
+```{r}
+drawr(data = data,
+      hide_buttons = FALSE)
+```
+
+</details>
+
+### Examples of Using the New Line Button
+
+The New Line button in `drawr()` opens up a range of possibilities for interactive data analysis and visualization. Here are a few examples of how you can leverage this feature:
+
+**Confidence/Prediction Intervals:** By drawing additional lines above and below the original regression line, you can create a visual representation of confidence or prediction intervals. This can give a sense of the variability in your data and the precision of your predictions. Additionally, you can check your own drawn confidence intervals with generated confidence intervals from the `linearDataGen()` or `customDataGen()` functions.
+
+**Model Deviation:** Sketch lines or shapes to indicate where your data diverges from the model predictions. This can help in visualizing the residuals or variance around your regression line. It can also help visualize if your model’s errors are normally distributed (drawing a bell shape) or if they have some sort of skewness or patterns that might need further investigation.
+
+**Outlier Identification:** Use the New Line button to draw shapes around potential outliers. This makes them easy to identify and discuss.
+
+**Areas of Interest:** Highlight specific regions on the graph that you want to focus on or further investigate.
+
+**Analyzing Potential Outcomes:** Use the New Line button to visualize the implications of changes to your data. For instance, if you have certain expectations about how your data might evolve in the future, you could draw these as new lines on your graph. This could include potential increases or decreases in trends, the emergence of new patterns, or changes to the variability of your data. By visualizing these different potential outcomes, you can more effectively prepare for these possibilities and understand how they might impact your model's predictions.
+
+Remember, these are just a few examples and there might be many other creative ways to use the New Line button, depending on your specific use case and data analysis/educative needs.
