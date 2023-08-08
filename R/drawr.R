@@ -9,7 +9,7 @@
 #' @param save_html_file_path File path to save d3 output as an html. If null will not save. Can just provide filename and will save to current working directory. (default: NULL)
 #' @param hide_buttons Logical value indicating whether to show or hide buttons. TRUE = hide, FALSE = show (default: FALSE)
 #' @param conf_int Whether to generate a 95\% confidence interval for the fitted line. Must select conf_int = TRUE in \code{linearDataGen()} or \code{customDataGen()} functions to generate interval. (default: FALSE)
-#' @param linear Choice of a linear or log y-scale, true = linear, else = log. If using log scale choose log_y = TRUE in \code{customDataGen()} function when generating data. (default: "true").
+#' @param linear Choice of a linear or log y-scale, "true" = linear, else = log. If using log scale choose log_y = TRUE in \code{customDataGen()} function when generating data. (default: "true").
 #' @param log_base The base of the log scale, only affects graph if not linear is not "true". If NULL will use natural logarithm. Log_base should match log_base choice in \code{customDataGen()} function (default = NULL)
 #' @param draw_start The starting point for drawing. Must be larger than minimum x value and smaller than maximum x value. If null is provided will use minimum x plus smallest possible positive number such that x min != sum. Only provide if free_draw != TRUE. (default: NULL).
 #' @param points_end The ending x-value for the points. Will only affect the graph if points are "partial" (default: NULL).
@@ -103,6 +103,10 @@ drawr <- function(data,
                   y_axis_buffer     = 0.05,
                   show_finished     = TRUE,
                   show_tooltip      = FALSE) {
+  if (!is.list(data) || !("line_data" %in% names(data)) || !("point_data" %in% names(data))) {
+    stop("Error: 'data' should be a list containing 'line_data' and 'point_data'")
+  }
+  
   if (x_axis_buffer < 0) {
     stop("Error: x_axis_buffer must be greater than or equal to 0")
   }
@@ -111,9 +115,43 @@ drawr <- function(data,
     stop("Error: y_axis_buffer must be greater than or equal to 0")
   }
   
+  if (!is.numeric(aspect_ratio) || aspect_ratio <= 0) {
+    stop("Error: 'aspect_ratio' must be a positive number")
+  }
+  
+  if (!(points %in% c("full", "partial"))) {
+    stop("Error: 'points' must be either 'full' or 'partial'")
+  }
+  
+  if (!is.numeric(x_by)) {
+    stop("Error: 'x_by' must be a number")
+  }
+  
+  if (!is.logical(free_draw)) {
+    stop("Error: 'free_draw' must be a boolean")
+  }
+  
+  if (!is.logical(show_finished)) {
+    stop("Error: 'show_finished' must be a boolean")
+  }
+  
+  if (!is.logical(show_tooltip)) {
+    stop("Error: 'show_tooltip' must be a boolean")
+  }
+  
+  if (!is.null(log_base)) {
+    if (!is.numeric(log_base) || log_base <= 0) {
+      stop("Error: 'log_base', if provided, must be a positive number")
+    }
+  }
+  
   line_data  <- data$line_data
   point_data <- data$point_data
   if (conf_int) {
+    if (!all(c("lower_bound", "upper_bound") %in% names(data$line_data))) {
+      stop("Error: 'lower_bound' and 'upper_bound' must be in 'line_data'. Remember to set 'conf_int = TRUE' in 'linearDataGen' or 'customDataGen' to generate confidence interval data or set conf_int = FALSE in `drawr`")
+    }
+    
     lower_bound <- tibble(x = line_data$x,
                           y = line_data$lower_bound)
     upper_bound <- tibble(x = line_data$x,

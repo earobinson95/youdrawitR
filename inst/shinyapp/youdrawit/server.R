@@ -430,6 +430,7 @@ function(input, output, session) {
             if (is.null(input$dataInput) || input$dataInput == "") {
               stop("No data entered.")
             }
+            dataInput <- input$dataInput
             # Set the delimiter based on user input (default to space)
             if (grepl("\t", input$dataInput)) {
               separator <- "\t"
@@ -443,10 +444,12 @@ function(input, output, session) {
               separator <- ","
             } else {
               separator <- " "
+              # Remove extra white spaces
+              dataInput <- gsub(" +", " ", input$dataInput)
             }
             
             # Use the text entered in the text area input
-            read.table(text = input$dataInput, header = !is.null(colnames), sep = separator, fill = TRUE)
+            read.table(text = dataInput, header = !is.null(colnames), sep = separator, fill = TRUE)
           }  
         }, error = function(e) {
           showNotification(paste("Error reading data:", e$message), type = "error")

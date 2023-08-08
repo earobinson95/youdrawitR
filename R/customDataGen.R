@@ -22,6 +22,9 @@
 #' @importFrom stats lm coef na.omit predict glm relevel loess
 #' @importFrom dplyr mutate across
 customDataGen <- function(df, xvar = NULL, yvar = NULL, regression_type = "linear", success_level = NULL, degree = NULL, span = 0.75, log_y = F, log_base = NULL, conf_int = F) {
+  if (!(is.data.frame(df))) {
+    stop("Error: The provided 'df' must be a data frame.")
+  }
   # Check if xvar is present in column names
   if (!is.null(xvar) && !(xvar %in% colnames(df))) {
     stop("Error: The specified x-variable does not exist in the column names of the data frame.")
@@ -199,6 +202,10 @@ customDataGen <- function(df, xvar = NULL, yvar = NULL, regression_type = "linea
   }
   # Perform logistic regression
   else if (regression_type == "logistic") {
+    if (!(length(levels(y)) == 2)) {
+      stop("Error: For 'logistic' regression, y-variable should be a binary factor.")
+    }
+    
     glm.fit <- glm(y ~ x, data = df, family = "binomial")
     coef <- coef(glm.fit)["x"] |> as.numeric()
     int <- coef(glm.fit)["(Intercept)"] |> as.numeric()
@@ -220,6 +227,12 @@ customDataGen <- function(df, xvar = NULL, yvar = NULL, regression_type = "linea
     if (is.null(degree)) {
       degree <- 1
     }
+    if (!(degree %in% c(0, 1, 2))) {
+      stop("Error: For 'loess' regression, the 'degree' must be 0, 1, or 2.")
+    }
+    if (span <= 0 || span > 1) {
+      stop("Error: The 'span' for a loess regression must be between 0 and 1 (exclusive).")
+    }
     loess.fit <- loess(y ~ x, data = df, degree = degree, span = span)
     line_data <- tibble(data = "line_data",
                         x = x,
@@ -231,7 +244,13 @@ customDataGen <- function(df, xvar = NULL, yvar = NULL, regression_type = "linea
   else {
     if (is.null(degree)) {
       degree <- 2
+    } else if (!is.numeric(degree) || degree < 1) {
+      stop("Error: degree for polynomial regression must be numeric and positive.")
     }
+    else if (degree >= length(y)) {
+      stop("Error: degree for polynomial regression must be less than the number of samples.")
+    }
+    
     poly.fit <- lm(y ~ poly(x, degree, raw = TRUE), data = df)
   
     # Extract the coefficients except the intercept

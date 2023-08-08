@@ -26,6 +26,16 @@ linearDataGen <-
            x_max = 20,
            conf_int = F){
     
+    # Error handling for function parameters
+    if (!is.numeric(y_int)) stop("y_int must be numeric.")
+    if (!is.numeric(slope)) stop("slope must be numeric.")
+    if (!is.numeric(sigma)) stop("sigma must be numeric.")
+    if (!is.numeric(N) || (N <= 0)) stop("N must be a positive numeric value.")
+    if (!is.numeric(x_min)) stop("x_min must be numeric.")
+    if (!is.numeric(x_max)) stop("x_max must be numeric.")
+    if (!is.logical(conf_int)) stop("conf_int must be logical.")
+    if (x_max <= x_min) stop("x_max must be greater than x_min.")
+    
     # Set up x values
     xVals <- seq(x_min, x_max, length.out = N)
     xVals <- ifelse(xVals < x_min, x_min, xVals)

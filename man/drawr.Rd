@@ -41,7 +41,7 @@ drawr(
 
 \item{conf_int}{Whether to generate a 95\% confidence interval for the fitted line. Must select conf_int = TRUE in \code{linearDataGen()} or \code{customDataGen()} functions to generate interval. (default: FALSE)}
 
-\item{linear}{Choice of a linear or log y-scale, true = linear, else = log. If using log scale choose log_y = TRUE in \code{customDataGen()} function when generating data. (default: "true").}
+\item{linear}{Choice of a linear or log y-scale, "true" = linear, else = log. If using log scale choose log_y = TRUE in \code{customDataGen()} function when generating data. (default: "true").}
 
 \item{log_base}{The base of the log scale, only affects graph if not linear is not "true". If NULL will use natural logarithm. Log_base should match log_base choice in \code{customDataGen()} function (default = NULL)}
 
