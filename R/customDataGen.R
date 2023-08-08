@@ -231,7 +231,7 @@ customDataGen <- function(df, xvar = NULL, yvar = NULL, regression_type = "linea
       stop("Error: For 'loess' regression, the 'degree' must be 0, 1, or 2.")
     }
     if (span <= 0 || span > 1) {
-      stop("Error: The 'span' for a loess regression must be between 0 and 1 (exclusive).")
+      stop("Error: The 'span' for a loess regression must be between 0 (exclusive) and 1 (inclusive).")
     }
     loess.fit <- loess(y ~ x, data = df, degree = degree, span = span)
     line_data <- tibble(data = "line_data",
