@@ -541,6 +541,69 @@ function(input, output, session) {
       sendTooltipState(tooltipState())
     })
     
+    # Reactive values to hold selected x and y columns
+    selectedColumns <- reactiveVal(c(NA, NA))
+    
+    # Watch for rDataset click
+    observeEvent(input$rDataset, {
+      
+      # Show modal dialog
+      showModal(modalDialog(
+        title = "Select Dataset and Columns",
+        
+        # Dropdown or selectizeInput to choose dataset
+        selectizeInput('datasetSelector', 'Choose a dataset', 
+                       choices = c('mtcars', 'iris', 'airquality')),
+        
+        # Wrap DTOutput in a div with style for horizontal scrolling
+        div(style = "max-width: 100%; overflow-x: auto;", DTOutput('tableDisplay')),
+        
+        # Display the selected x and y columns
+        verbatimTextOutput("selectedColumns"),
+        
+        # Close button
+        footer = modalButton("Close")
+      ))
+    })
+    
+    output$tableDisplay <- renderDT({
+      req(input$datasetSelector)
+      
+      dataset <- switch(input$datasetSelector,
+                        mtcars = mtcars,
+                        iris = iris,
+                        airquality = airquality)
+      
+      datatable(dataset, 
+                options = list(columnDefs = list(list(targets = '_all', className = 'dt-center'))),
+                selection = "none", 
+                callback = JS("
+                    table.on('click', 'td', function() {
+                        var colIndex = table.cell(this).index().column;
+                        var colName = table.column(colIndex).header();
+                        Shiny.setInputValue('clickedColumn', $(colName).html(), {priority: 'event'});
+                    });
+                  ")) 
+    })
+    
+    # Rest of the logic remains same
+    observeEvent(input$clickedColumn, {
+      currentColumns <- selectedColumns()
+      if (is.na(currentColumns[1])) {
+        currentColumns[1] <- input$clickedColumn
+      } else if (is.na(currentColumns[2])) {
+        currentColumns[2] <- input$clickedColumn
+      } else {
+        currentColumns <- c(input$clickedColumn, NA)
+      }
+      selectedColumns(currentColumns)
+    })
+    
+    output$selectedColumns <- renderPrint({
+      cols <- selectedColumns()
+      paste("X:", cols[1], ", Y:", cols[2])
+    })
+    
     if (!dataSubmitted) {
       output$shinydrawr <- r2d3::renderD3({ drawr_output() })
     }
