@@ -745,7 +745,6 @@ function start_drawer(state, reset = true){
 }
 
   function setup_drawable_points({line_data, free_draw, draw_start}){
-    if (free_draw) {
       if (state.x_range && (state.x_range[0] < line_data[0].x)) {
         line_data.unshift({ x: state.x_range[0], y: null });
       }
@@ -760,13 +759,17 @@ function start_drawer(state, reset = true){
       
       let drawable_points = interpolate_x({x_range, threshold_size: 0.10, simplified_points})
       
+      const threshold = 0.0005 * x_range;
+      
+    if (free_draw) {
       //remove the repeated x values from drawable_points
       return drawable_points
-                .filter((d, i, arr) => i === 0 || d.x !== arr[i - 1].x)
+                .filter((d, i, arr) => i === 0 || Math.abs(d.x - arr[i - 1].x) > threshold)
                 .map((d) => ({ x: d.x, y: null }));;
     } else {
       return line_data
       .filter(d => d.x >= draw_start)    
+      .filter((d, i, arr) => i === 0 || Math.abs(d.x - arr[i - 1].x) > threshold)
       .map((d,i) => ({
         x: d.x,
         y: i === 0 ? d.y: null

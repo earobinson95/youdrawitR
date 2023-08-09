@@ -546,6 +546,21 @@ function(input, output, session) {
     
     # Watch for rDataset click
     observeEvent(input$rDataset, {
+      session$sendCustomMessage("resetAction", "true")
+      if (input$mybutton %% 2 == 1) { # If button has been clicked odd number of times
+        resetClicked(TRUE)
+        updateActionButton(session, "mybutton", icon = icon("pencil"), label = "Add New Line")
+        removeCssClass("mybutton", "red-button")
+        addCssClass("mybutton", "normal-button")
+      }
+      updateRadioButtons(session, "line_selector", selected = "original")
+      shinyjs::hide("dataSelector")
+      shinyjs::hide("line_number")
+      shinyjs::hide("recordedDataSection")
+      session$onFlushed(once=TRUE, function() {
+        session$sendCustomMessage("finishedColorAction", isolate(input$finished_color))
+        session$sendCustomMessage("drawColorAction", isolate(input$draw_color))
+      })
       
       # Show modal dialog
       showModal(modalDialog(
@@ -561,8 +576,10 @@ function(input, output, session) {
         # Display the selected x and y columns
         verbatimTextOutput("selectedColumns"),
         
-        # Close button
-        footer = modalButton("Close")
+        footer = tagList(
+          actionButton("submitRData", "Submit", class = "btn btn-primary"),
+          modalButton("Cancel")
+        )
       ))
     })
     
@@ -602,6 +619,27 @@ function(input, output, session) {
     output$selectedColumns <- renderPrint({
       cols <- selectedColumns()
       paste("X:", cols[1], ", Y:", cols[2])
+    })
+    
+    observeEvent(input$submitRData, {
+      shinyjs::hide("showConfInterval")
+      
+      cols <- selectedColumns()
+      dataset <- switch(input$datasetSelector,
+                        mtcars = mtcars,
+                        iris = iris,
+                        airquality = airquality)
+      
+      data <- tryCatch({
+        customDataGen(dataset, cols[1], cols[2])
+        }, error = function(e) {
+        showNotification(paste("Error generating data:", e$message), type = "error")
+        removeModal()
+        return(NULL)  # return NULL on error
+      })
+
+      output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, draw_region_color = color) })
+      removeModal()
     })
     
     if (!dataSubmitted) {
