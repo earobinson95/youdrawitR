@@ -546,6 +546,9 @@ function(input, output, session) {
     
     # Watch for rDataset click
     observeEvent(input$rDataset, {
+      # Reset selectedColumns
+      selectedColumns(c(NA, NA))
+      
       session$sendCustomMessage("resetAction", "true")
       if (input$mybutton %% 2 == 1) { # If button has been clicked odd number of times
         resetClicked(TRUE)
@@ -566,21 +569,65 @@ function(input, output, session) {
       showModal(modalDialog(
         title = "Select Dataset and Columns",
         
-        # Dropdown or selectizeInput to choose dataset
-        selectizeInput('datasetSelector', 'Choose a dataset', 
-                       choices = c('mtcars', 'iris', 'airquality')),
+        fluidRow(
+          column(width = 6,
+              selectizeInput('datasetSelector', 'Choose a dataset', 
+                                choices = c('mtcars', 'iris', 'airquality'))
+          ),
+          column(width = 6,
+              wellPanel(uiOutput("selectedColumns"))
+          )),
         
         # Wrap DTOutput in a div with style for horizontal scrolling
-        div(style = "max-width: 100%; overflow-x: auto;", DTOutput('tableDisplay')),
+        div(id = "tableDisplay", style = "max-width: 100%; overflow-x: auto;", DTOutput('tableDisplay')),
         
-        # Display the selected x and y columns
-        verbatimTextOutput("selectedColumns"),
+        tags$script(HTML('
+          var targetNode = document.getElementById("selectedColumns");
+        
+          function updateTooltip() {
+            var selectedColumnsText = $("#selectedColumns").text();
+        
+            // Safeguard: Only proceed if the text is present
+            if (selectedColumnsText) {
+              var selectedColumns = selectedColumnsText.trim().split(",");
+        
+              // Further safeguards: Only proceed if split operation produces expected results
+              if (selectedColumns.length >= 2) {
+                var xSelected = selectedColumns[0].split(":")[1].trim().replace(/"/g, "");  // remove double quotes
+                var ySelected = selectedColumns[1].split(":")[1].trim().replace(/"/g, "");
+        
+                var message = "";
+                if (xSelected === "NA" && ySelected === "NA") {
+                  message = "Click a column to select as X-var";
+                } else if (ySelected === "NA") {
+                  message = "Click a column to select as Y-var";
+                } else {
+                  message = "Submit or restart by clicking new X-var column";
+                }
+                $("#tableDisplay").attr("title", message);
+              }
+            }
+          }
+        
+          var observerOptions = {
+            childList: true,
+            attributes: true,
+            characterData: true
+          };
+        
+          var observer = new MutationObserver(updateTooltip);
+          observer.observe(targetNode, observerOptions); // when the selectedColumns changed updateTooltip
+        ')),
         
         footer = tagList(
           actionButton("submitRData", "Submit", class = "btn btn-primary"),
           modalButton("Cancel")
         )
       ))
+    })
+    
+    observeEvent(input$datasetSelector, {
+      selectedColumns(c(NA, NA))
     })
     
     output$tableDisplay <- renderDT({
@@ -600,7 +647,7 @@ function(input, output, session) {
                         var colName = table.column(colIndex).header();
                         Shiny.setInputValue('clickedColumn', $(colName).html(), {priority: 'event'});
                     });
-                  ")) 
+                  "))
     })
     
     # Rest of the logic remains same
@@ -616,9 +663,11 @@ function(input, output, session) {
       selectedColumns(currentColumns)
     })
     
-    output$selectedColumns <- renderPrint({
+    output$selectedColumns <- renderUI({
       cols <- selectedColumns()
-      paste("X:", cols[1], ", Y:", cols[2])
+      output_text <- paste("<strong>Currently Selected Columns</strong><br>",
+                           "X:", cols[1], ", Y:", cols[2])
+      HTML(output_text)
     })
     
     observeEvent(input$submitRData, {
@@ -637,6 +686,9 @@ function(input, output, session) {
         removeModal()
         return(NULL)  # return NULL on error
       })
+      
+      # Stop execution if an error occurred while generating data
+      if(is.null(data)) return()
 
       output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, draw_region_color = color) })
       removeModal()
