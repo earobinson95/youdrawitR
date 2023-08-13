@@ -430,6 +430,7 @@ function(input, output, session) {
             if (is.null(input$dataInput) || input$dataInput == "") {
               stop("No data entered.")
             }
+            dataInput <- input$dataInput
             # Set the delimiter based on user input (default to space)
             if (grepl("\t", input$dataInput)) {
               separator <- "\t"
@@ -443,10 +444,12 @@ function(input, output, session) {
               separator <- ","
             } else {
               separator <- " "
+              # Remove extra white spaces
+              dataInput <- gsub(" +", " ", input$dataInput)
             }
             
             # Use the text entered in the text area input
-            read.table(text = input$dataInput, header = !is.null(colnames), sep = separator, fill = TRUE)
+            read.table(text = dataInput, header = !is.null(colnames), sep = separator, fill = TRUE)
           }  
         }, error = function(e) {
           showNotification(paste("Error reading data:", e$message), type = "error")
@@ -536,6 +539,159 @@ function(input, output, session) {
     observeEvent(input$tooltipButton, {
       tooltipState(input$tooltipButton)
       sendTooltipState(tooltipState())
+    })
+    
+    # Reactive values to hold selected x and y columns
+    selectedColumns <- reactiveVal(c(NA, NA))
+    
+    # Watch for rDataset click
+    observeEvent(input$rDataset, {
+      # Reset selectedColumns
+      selectedColumns(c(NA, NA))
+      
+      session$sendCustomMessage("resetAction", "true")
+      if (input$mybutton %% 2 == 1) { # If button has been clicked odd number of times
+        resetClicked(TRUE)
+        updateActionButton(session, "mybutton", icon = icon("pencil"), label = "Add New Line")
+        removeCssClass("mybutton", "red-button")
+        addCssClass("mybutton", "normal-button")
+      }
+      updateRadioButtons(session, "line_selector", selected = "original")
+      shinyjs::hide("dataSelector")
+      shinyjs::hide("line_number")
+      shinyjs::hide("recordedDataSection")
+      session$onFlushed(once=TRUE, function() {
+        session$sendCustomMessage("finishedColorAction", isolate(input$finished_color))
+        session$sendCustomMessage("drawColorAction", isolate(input$draw_color))
+      })
+      
+      # Show modal dialog
+      showModal(modalDialog(
+        title = "Select Dataset and Columns",
+        
+        fluidRow(
+          column(width = 6,
+              selectizeInput('datasetSelector', 'Choose a dataset', 
+                                choices = c('mtcars', 'iris', 'airquality'))
+          ),
+          column(width = 6,
+              wellPanel(uiOutput("selectedColumns"))
+          )),
+        
+        # Wrap DTOutput in a div with style for horizontal scrolling
+        div(id = "tableDisplay", style = "max-width: 100%; overflow-x: auto;", DTOutput('tableDisplay')),
+        
+        tags$script(HTML('
+          var targetNode = document.getElementById("selectedColumns");
+        
+          function updateTooltip() {
+            var selectedColumnsText = $("#selectedColumns").text();
+        
+            // Safeguard: Only proceed if the text is present
+            if (selectedColumnsText) {
+              var selectedColumns = selectedColumnsText.trim().split(",");
+        
+              // Further safeguards: Only proceed if split operation produces expected results
+              if (selectedColumns.length >= 2) {
+                var xSelected = selectedColumns[0].split(":")[1].trim().replace(/"/g, "");  // remove double quotes
+                var ySelected = selectedColumns[1].split(":")[1].trim().replace(/"/g, "");
+        
+                var message = "";
+                if (xSelected === "NA" && ySelected === "NA") {
+                  message = "Click a column to select as X-var";
+                } else if (ySelected === "NA") {
+                  message = "Click a column to select as Y-var";
+                } else {
+                  message = "Submit or restart by clicking new X-var column";
+                }
+                $("#tableDisplay").attr("title", message);
+              }
+            }
+          }
+        
+          var observerOptions = {
+            childList: true,
+            attributes: true,
+            characterData: true
+          };
+        
+          var observer = new MutationObserver(updateTooltip);
+          observer.observe(targetNode, observerOptions); // when the selectedColumns changed updateTooltip
+        ')),
+        
+        footer = tagList(
+          actionButton("submitRData", "Submit", class = "btn btn-primary"),
+          modalButton("Cancel")
+        )
+      ))
+    })
+    
+    observeEvent(input$datasetSelector, {
+      selectedColumns(c(NA, NA))
+    })
+    
+    output$tableDisplay <- renderDT({
+      req(input$datasetSelector)
+      
+      dataset <- switch(input$datasetSelector,
+                        mtcars = mtcars,
+                        iris = iris,
+                        airquality = airquality)
+      
+      datatable(dataset, 
+                options = list(columnDefs = list(list(targets = '_all', className = 'dt-center'))),
+                selection = "none", 
+                callback = JS("
+                    table.on('click', 'td', function() {
+                        var colIndex = table.cell(this).index().column;
+                        var colName = table.column(colIndex).header();
+                        Shiny.setInputValue('clickedColumn', $(colName).html(), {priority: 'event'});
+                    });
+                  "))
+    })
+    
+    # Rest of the logic remains same
+    observeEvent(input$clickedColumn, {
+      currentColumns <- selectedColumns()
+      if (is.na(currentColumns[1])) {
+        currentColumns[1] <- input$clickedColumn
+      } else if (is.na(currentColumns[2])) {
+        currentColumns[2] <- input$clickedColumn
+      } else {
+        currentColumns <- c(input$clickedColumn, NA)
+      }
+      selectedColumns(currentColumns)
+    })
+    
+    output$selectedColumns <- renderUI({
+      cols <- selectedColumns()
+      output_text <- paste("<strong>Currently Selected Columns</strong><br>",
+                           "X:", cols[1], ", Y:", cols[2])
+      HTML(output_text)
+    })
+    
+    observeEvent(input$submitRData, {
+      shinyjs::hide("showConfInterval")
+      
+      cols <- selectedColumns()
+      dataset <- switch(input$datasetSelector,
+                        mtcars = mtcars,
+                        iris = iris,
+                        airquality = airquality)
+      
+      data <- tryCatch({
+        customDataGen(dataset, cols[1], cols[2])
+        }, error = function(e) {
+        showNotification(paste("Error generating data:", e$message), type = "error")
+        removeModal()
+        return(NULL)  # return NULL on error
+      })
+      
+      # Stop execution if an error occurred while generating data
+      if(is.null(data)) return()
+
+      output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, draw_region_color = color) })
+      removeModal()
     })
     
     if (!dataSubmitted) {
