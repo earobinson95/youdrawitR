@@ -202,8 +202,11 @@ function(input, output, session) {
         }
       }
     )
+    session$onSessionEnded(stopApp)
     
-    observeEvent(input$copyData, {
+    copied_text <- reactiveValues(text = "")
+    
+    output$clip <- renderUI({
       selected_line <- input$line_selector
       line_number <- input$line_number
       
@@ -214,15 +217,41 @@ function(input, output, session) {
         data_to_copy <- new_line_data()[[line_number]]
       }
       
-      if (!is.null(data_to_copy)) {
-        clipr::write_clip(data_to_copy)
-        # Save the data frame to the global environment
-        assign("copied_data", data_to_copy, envir = .GlobalEnv)
-        showNotification("Data copied to clipboard!", type = "message")
+      text_lines  <- paste("x, y")
+      for (i in 1:nrow(data_to_copy)) {
+        text_lines  <- paste(text_lines, paste(data_to_copy[i, ], collapse = ", "), sep = "\n")
       }
       
-      # read.table(text = " copied_data ", header = TRUE)
+      copied_text$text <- text_lines
+
+        rclipButton(
+          inputId = "clipbtn",
+          label = "",
+          clipText = copied_text$text,
+          icon = icon("clipboard"),
+          title = "Copy Data")
     })
+    
+    
+    observeEvent(input$clipbtn, {
+      is_local <- Sys.getenv('SHINY_PORT') == ""
+      if (is_local) {
+        selected_line <- input$line_selector
+        line_number <- input$line_number
+        
+        data_to_copy <- NULL
+        if (selected_line == "original") {
+          data_to_copy <- user_line_data()
+        } else if (selected_line == "new") {
+          data_to_copy <- new_line_data()[[line_number]]
+        }
+        # Only assign if not on shinyapps.io (local R session)
+        assign("copied_data", data_to_copy, envir = .GlobalEnv)
+      }
+      
+      showNotification("Data copied to clipboard!", type = "message")
+    })
+
     
     
     output$regressionTitle <- renderUI({

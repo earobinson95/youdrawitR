@@ -12,6 +12,7 @@ library(r2d3)
 library(DT)
 library(shinyjs)
 library(colourpicker)
+library(rclipboard)
 
 navbarPage(
   "Can 'You Draw It'?",
@@ -146,11 +147,12 @@ navbarPage(
                     column(
                       width = 6,
                       align = "right",
-                      div(style = "margin-top: -10px;",  # Adjust this value as needed
+                      rclipboardSetup(),
+                      div(style = "margin-top: -10px;",
                           fluidRow(
-                            column(width = 12, align = "right", class = "text-right", 
-                                   downloadButton("saveData", label = "", title = "Download Data"),
-                                   actionButton("copyData", label = icon("clipboard"), title = "Copy Data"))
+                            column(width = 9, align = "right", class = "text-right", 
+                                   downloadButton("saveData", label = "", title = "Download Data")),
+                            column(width = 3, align = "left", style = "display: flex; justify-content: flex-end;", uiOutput("clip")
                           )
                           )
                       )
@@ -161,6 +163,7 @@ navbarPage(
                     )
                   )
                 )
+              )
               )
               )
             )

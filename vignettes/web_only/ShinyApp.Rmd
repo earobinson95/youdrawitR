@@ -1,4 +1,4 @@
----
+ead.c---
 title: "Shiny App"
 output: rmarkdown::html_vignette
 vignette: >
@@ -50,7 +50,7 @@ Once the user has completed the graph (indicated by the progress region), the re
 
 Alternatively, if the user would prefer not to save the data to their local device they can also copy the data to clipboard by pressing the **Copy Data** button (shown as a clipboard icon). Doing this will copy the data to the user's clipboard. To easily process the copied data in R use this code:
 
-`read.table(text = "copied data", header = TRUE)`
+`read.csv(text = "copied data")`
 
 Additionally, if the user is running the shiny app in their own R session, instead of using the published version, pressing the Copy Data button will automatically assign the variable to "copied_data" in their global environment for future use.
 
