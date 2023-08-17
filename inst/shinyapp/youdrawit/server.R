@@ -16,6 +16,7 @@ library(utils)
 library(stats)
 library(r2d3)
 library(colourpicker)
+library(clipr)
 
 # Define server logic required to draw a histogram
 function(input, output, session) {
@@ -201,6 +202,28 @@ function(input, output, session) {
         }
       }
     )
+    
+    observeEvent(input$copyData, {
+      selected_line <- input$line_selector
+      line_number <- input$line_number
+      
+      data_to_copy <- NULL
+      if (selected_line == "original") {
+        data_to_copy <- user_line_data()
+      } else if (selected_line == "new") {
+        data_to_copy <- new_line_data()[[line_number]]
+      }
+      
+      if (!is.null(data_to_copy)) {
+        clipr::write_clip(data_to_copy)
+        # Save the data frame to the global environment
+        assign("copied_data", data_to_copy, envir = .GlobalEnv)
+        showNotification("Data copied to clipboard!", type = "message")
+      }
+      
+      # read.table(text = " copied_data ", header = TRUE)
+    })
+    
     
     output$regressionTitle <- renderUI({
       tags$h3(paste(input$regressionType, "Regression Options"), style = "font-size: 16px; margin-top: -10px;")

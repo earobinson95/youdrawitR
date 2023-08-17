@@ -44,7 +44,17 @@ The main interface consists of a plot that users can interactively draw lines on
 
 ### Recorded Data
 
-Once the user has completed the graph (indicated by the progress region), the recorded x and y data of the user lines will be shown. You can select which data you want to display: the original line or new user-drawn lines, if it exists. If multiple new user-drawn lines were drawn you can also select the line data you would like to display using the slider input, which is by precedence of when the line was drawn (so the first new user-drawn line will be number 1 etc). The user can then save this data to their local device using the **Save Data** button. Clicking this button will download the data that the user is currently viewing.
+Once the user has completed the graph (indicated by the progress region), the recorded x and y data of the user lines will be shown. You can select which data you want to display: the original line or new user-drawn lines, if it exists. If multiple new user-drawn lines were drawn you can also select the line data you would like to display using the slider input, which is by precedence of when the line was drawn (so the first new user-drawn line will be number 1 etc). The user can then save this data to their local device using the **Download Data** button (shown as a download icon). Clicking this button will download the data that the user is currently viewing. To easily process the downloaded data in R use this code:
+
+`read.csv("path to file")`
+
+Alternatively, if the user would prefer not to save the data to their local device they can also copy the data to clipboard by pressing the **Copy Data** button (shown as a clipboard icon). Doing this will copy the data to the user's clipboard. To easily process the copied data in R use this code:
+
+`read.table(text = "copied data", header = TRUE)`
+
+Additionally, if the user is running the shiny app in their own R session, instead of using the published version, pressing the Copy Data button will automatically assign the variable to "copied_data" in their global environment for future use.
+
+With the data in R, you can perform further analysis, visualization, or any other data manipulation tasks according to your requirements.
 
 ## How To Use
 
@@ -58,7 +68,7 @@ Once the user has completed the graph (indicated by the progress region), the re
 
 5.  Choose your drawn line data by selecting "Original line" or New lines" in the "Select data to display" section. Use the slider to select the line you want to display.
 
-6.  Save the recorded data for later use by clicking Save Data.
+6.  Save the recorded data for later use by clicking the download data or copy data buttons.
 
 7.  Click Reset to clear all user-drawn lines and reset the application.
 

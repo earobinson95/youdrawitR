@@ -147,7 +147,11 @@ navbarPage(
                       width = 6,
                       align = "right",
                       div(style = "margin-top: -10px;",  # Adjust this value as needed
-                          downloadButton("saveData", "Save Data")
+                          fluidRow(
+                            column(width = 12, align = "right", class = "text-right", 
+                                   downloadButton("saveData", label = "", title = "Download Data"),
+                                   actionButton("copyData", label = icon("clipboard"), title = "Copy Data"))
+                          )
                           )
                       )
                     ),
