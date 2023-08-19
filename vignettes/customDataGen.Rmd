@@ -19,22 +19,23 @@ knitr::opts_chunk$set(
 ```{r setup}
 library(youdrawitR)
 
-# Use iris data set
-data(iris)
+library(palmerpenguins)  # Load the penguins dataset
 ```
 
 ## Introduction
 
 `customDataGen()` is a versatile function that processes a dataframe to generate data that is suitable for visualizing with the `drawr()` function. This function allows you to specify the type of regression, the degree of polynomial or loess regression, whether to apply a log transformation to y for the fitted line, and whether a confidence interval should be generated.
 
-In this example, we will use the iris dataset and use the `customDataGen()` function to process it.
+In this example, we will use the penguins dataset and use the `customDataGen()` function to process it. We will look specifically at penguins on the Biscoe island.
 
 ```{r}
+biscoe_penguins <- subset(penguins, island == "Biscoe")
+
 # Use customDataGen to process the data
 custom_data <- customDataGen(
-  df = iris,
-  xvar = "Petal.Length",
-  yvar = "Petal.Width",
+  df = biscoe_penguins,
+  xvar = "body_mass_g",
+  yvar = "flipper_length_mm",
   regression_type = "linear",
   log_y = FALSE,
   conf_int = TRUE # conf_int can only be true for linear regression
@@ -53,9 +54,10 @@ Now let's input the data into the `drawr()` function to visualize the processed 
 
 ```{r}
 drawr(custom_data, 
-      title = "Petal Width vs Petal Length", 
-      x_lab = "Petal Width",
-      subtitle = "Petal Length",
+      title = "Flipper Length vs Body Mass", 
+      subtitle = "For Penguins on Biscoe Island",
+      x_lab = "Body Mass (g)",
+      y_lab = "Flipper Length (mm)",
       conf_int = TRUE)
 ```
 Try drawing for yourself in the plot above! See if you can replicate the regression line. Additionally, you can also draw the 95% confidence interval boundaries using the "new line" button. Have fun experimenting with this interactive plot!
@@ -68,43 +70,43 @@ The `customDataGen()` currently offers four regression options: linear, polynomi
 
 ```{r}
 # Convert Species into a binary categorical variable
-iris$binary_species <- ifelse(iris$Species == "setosa", "setosa", "other")
+biscoe_penguins$binary_species <- ifelse(biscoe_penguins$species == "Adelie", "Adelie", "other")
 ```
 
-The `customDataGen()` function can only generate logistic regression data for binary categorical variables. In this case we will use either setosa or other for species. You do not need to worry about changing this variable to a factor as the customDataGen function will do it for you.
+The `customDataGen()` function can only generate logistic regression data for binary categorical variables. In this case we will use either Adelie or other for species. You do not need to worry about changing this variable to a factor as the customDataGen function will do it for you.
 
 ```{r}
 # Generate custom data for logistic regression
 custom_data_logistic <- customDataGen(
-  df = iris,
-  xvar = "Sepal.Length",  # Predictor variable (numeric): Sepal length in centimeters
-  yvar = "binary_species", # Response variable (binary categorical): Setosa (1) or Other (0)
+  df = biscoe_penguins,
+  xvar = "bill_length_mm",  # Predictor variable (numeric): Bill length in millimeters
+  yvar = "binary_species", # Response variable (binary categorical): Adelie (1) or Other (0)
   regression_type = "logistic",
-  success_level = "setosa"
+  success_level = "Adelie"
 )
 ```
 
-The success_level argument specifies which of the two levels of the binary response variable is considered as the "event" or "success". In this case, we are interested in the occurrence of the 'setosa' species, and so we set "setosa" as the success_level.
+The success_level argument specifies which of the two levels of the binary response variable is considered as the "event" or "success". In this case, we are interested in the occurrence of the 'Adelie' species, and so we set "Adelie" as the success_level.
 
 If success_level is not provided, the function will default to using the first level of the binary response variable, sorted alphabetically. So, if your binary response has levels "yes" and "no", and you do not specify a success_level, the function will treat "no" as the "success" level, since "no" comes before "yes" alphabetically.
 
 ```{r}
 drawr(custom_data_logistic,
-      title = "Probability of 'Setosa' Species Based on Sepal Length",
+      title = "Probability of 'Adelie' Species Based on Bill Length",
       aspect_ratio = 1.2)
 ```
-Here's another chance for you to test your data drawing skills! Try to draw the logistic regression curve showing the probability of an iris being of 'Setosa' species based on its sepal length.
+Here's another chance for you to test your data drawing skills! Try to draw the logistic regression curve showing the probability of a penguin being of 'Adelie' species based on its bill length.
 
 ### Polynomial Regression
 
-Polynomial regression can be used to model relationships between variables that aren't linear. In this case, we'll generate a second degree polynomial regression using "Petal.Length" as the x variable, and "Sepal.Length" as the y variable.
+Polynomial regression can be used to model relationships between variables that aren't linear. In this case, we'll generate a second degree polynomial regression using "bill_length_mm" as the x variable, and "body_mass_g" as the y variable.
 
 ```{r}
 # Generate custom data for polynomial regression
 custom_data_poly <- customDataGen(
-  df = iris,
-  xvar = "Petal.Length",
-  yvar = "Sepal.Length",
+  df = biscoe_penguins,
+  xvar = "bill_length_mm",
+  yvar = "body_mass_g",
   regression_type = "polynomial",
   degree = 2 # default is 2 if not specified for poly regression
 )
@@ -116,20 +118,20 @@ Let's visualize this data using the `drawr()` function:
 
 ```{r}
 drawr(custom_data_poly, 
-      title = "Sepal Length vs Petal Length: Poly Regression")
+      title = "Bill Length vs Body Mass: Poly Regression")
 ```
-Go ahead, try to draw the polynomial regression curve showing the relationship between petal length and sepal length. This may be more challenging than the previous plots as the relationship is not linear!
+Go ahead, try to draw the polynomial regression curve showing the relationship between bill length and body mass. This may be more challenging than the previous plots as the relationship is not linear!
 
 ### Loess Regression
 
-Loess regression is a non-parametric method that uses local data fitting to fit a smooth curve through points in a scatter plot. We'll generate a loess regression using "Sepal.Length" as the x variable, and "Sepal.Width" as the y variable.
+Loess regression is a non-parametric method that uses local data fitting to fit a smooth curve through points in a scatter plot. We'll generate a loess regression using "bill_depth_mm" as the x variable, and "body_mass_g" as the y variable.
 
 ```{r}
 # Generate custom data for loess regression
 custom_data_loess <- customDataGen(
-  df = iris,
-  xvar = "Petal.Width",
-  yvar = "Sepal.Width",
+  df = penguins,
+  xvar = "bill_depth_mm",
+  yvar = "body_mass_g",
   regression_type = "loess",
   degree = 1, # default if not specified is 1 for loess regression (must be 0, 1, or 2)
   span = 0.75 # default if not specified is 0.75 (ranges between 0 and 1)
@@ -144,9 +146,9 @@ Now we can visualize this data:
 
 ```{r}
 drawr(custom_data_loess,
-      title = "Sepal Width vs Petal Width: Loess Regression")
+      title = "Bill Depth vs Body Mass: Loess Regression")
 ```
-Try to draw the loess regression curve. This might be the most challenging plot yet, as the relationship between sepal width and sepal length is complex and non-linear, you can almost imagine it as giving a kid a crayon and telling them to draw a line through the points. Good luck!
+Try to draw the loess regression curve. This might be the most challenging plot yet, as the relationship between bill depth and body mass is complex and non-linear, you can almost imagine it as giving a kid a crayon and telling them to draw a line through the points. Good luck!
 
 ## Logarithmic Scale
 

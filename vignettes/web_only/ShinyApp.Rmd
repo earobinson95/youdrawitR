@@ -1,4 +1,4 @@
-ead.c---
+---
 title: "Shiny App"
 output: rmarkdown::html_vignette
 vignette: >
@@ -33,6 +33,8 @@ The main interface consists of a plot that users can interactively draw lines on
     -   **Use R Data set:** Choose from pre-loaded R data sets to plot and analyze. A pop-up will display once the user presses the link with data set options. Users can choose x and y variables by pressing on the columns of the data set. (hover over data table to see tooltip for further instruction)
 
 -   **Reset:** Clear all user-drawn lines and reset the progress.
+
+-   **Generate New Random Data (button with dice icon):** Generates new random linear data.
 
 -   **Add New Line/Stop Drawing Button:** Clicking this button initiates the drawing of a new line, turning the button red. Clicking it again, now labeled "Stop Drawing", concludes the new line and reverts back to extending the original line. Users cannot edit a line once concluded.
 
