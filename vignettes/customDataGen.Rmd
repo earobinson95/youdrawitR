@@ -120,7 +120,7 @@ Let's visualize this data using the `drawr()` function:
 drawr(custom_data_poly, 
       title = "Bill Length vs Body Mass: Poly Regression")
 ```
-Go ahead, try to draw the polynomial regression curve showing the relationship between petal length and sepal length. This may be more challenging than the previous plots as the relationship is not linear!
+Go ahead, try to draw the polynomial regression curve showing the relationship between bill length and body mass. This may be more challenging than the previous plots as the relationship is not linear!
 
 ### Loess Regression
 

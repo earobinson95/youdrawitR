@@ -42,9 +42,8 @@ navbarPage(
                                style = "display: block; padding-left: 10px;")
                 ),
             ),
-            actionButton("reset", "Reset", 
-                         style = "position: absolute; top: 445px; left: 600px;",
-                         class = "btn btn-primary"),
+            actionButton("reset", "Reset", style = "position: absolute; top: 445px; left: 600px;", class = "btn btn-primary"),
+            actionButton("generateRandomData", title = "Generate New Random Data", icon("dice"), style = "position: absolute; top: 445px; left: 665px;"),
             div(
               style = "position: absolute; top: 50px; left: 600px;",
               checkboxInput(

@@ -21,27 +21,63 @@ library(rclipboard)
 # Define server logic required to draw a histogram
 function(input, output, session) {
     color = reactive({input$region_color})
-
-    dataSubmitted <- FALSE
     
-    if (!dataSubmitted) {
-      drawr_output <- reactive({
-        input$reset
-        
-        data <- linearDataGen(
-          y_int = rnorm(1, 5, 15),
-          slope = runif(1, -2, 2),
-          sigma = runif(1, 1, 3),
-          x_min = 0,
-          x_max = 20,
-          N = 40,
-          conf_int = input$showConfInterval
-        )
-        
-        drawr(data, hide_buttons = T, conf_int = input$showConfInterval, 
-              draw_region_color = color())
+    dataSubmitted <- reactiveVal(FALSE)
+
+    drawr_output <- reactive({
+      input$generateRandomData
+      
+      data <- linearDataGen(
+        y_int = rnorm(1, 5, 15),
+        slope = runif(1, -2, 2),
+        sigma = runif(1, 1, 3),
+        x_min = 0,
+        x_max = 20,
+        N = 40,
+        conf_int = input$showConfInterval
+      )
+      
+      drawr(data, hide_buttons = T, conf_int = input$showConfInterval, 
+            draw_region_color = color())
+    })
+    
+    observeEvent(input$generateRandomData, {
+      session$sendCustomMessage("resetAction", "true")
+      if (input$mybutton %% 2 == 1) { # If button has been clicked odd number of times
+        resetClicked(TRUE)
+        updateActionButton(session, "mybutton", icon = icon("pencil"), label = "Add New Line")
+        removeCssClass("mybutton", "red-button")
+        addCssClass("mybutton", "normal-button")
+      }
+      updateRadioButtons(session, "line_selector", selected = "original")
+      shinyjs::hide("dataSelector")
+      shinyjs::hide("line_number")
+      shinyjs::hide("recordedDataSection")
+      session$onFlushed(once=TRUE, function() {
+        session$sendCustomMessage("finishedColorAction", isolate(input$finished_color))
+        session$sendCustomMessage("drawColorAction", isolate(input$draw_color))
       })
-    }
+      
+      if (dataSubmitted()) {
+        shinyjs::show("showConfInterval")
+        
+        drawr_output <- reactive({
+          data <- linearDataGen(
+            y_int = rnorm(1, 5, 15),
+            slope = runif(1, -2, 2),
+            sigma = runif(1, 1, 3),
+            x_min = 0,
+            x_max = 20,
+            N = 40,
+            conf_int = input$showConfInterval
+          )
+          
+          drawr(data, hide_buttons = T, conf_int = input$showConfInterval, 
+                draw_region_color = color())
+        })
+        output$shinydrawr <- r2d3::renderD3({ drawr_output() })
+      }
+    })
     
     observeEvent(input$region_color, {
       session$sendCustomMessage("regionColorAction", input$region_color)
@@ -322,8 +358,8 @@ function(input, output, session) {
         session$sendCustomMessage("finishedColorAction", isolate(input$finished_color))
         session$sendCustomMessage("drawColorAction", isolate(input$draw_color))
       })
+      dataSubmitted(TRUE)
       
-      dataSubmitted <- TRUE
       # Close the modal dialog
       removeModal()
     })
@@ -435,7 +471,6 @@ function(input, output, session) {
     })
     
     observeEvent(input$submitData, {
-      shinyjs::hide("showConfInterval")
       dataInput <- tryCatch({
         # Rename the columns based on user input or set to NULL if no input
         if (is.null(input$xColumn) || input$xColumn == "" || is.null(input$yColumn) || input$yColumn == "") {
@@ -573,7 +608,9 @@ function(input, output, session) {
         session$sendCustomMessage("finishedColorAction", isolate(input$finished_color))
         session$sendCustomMessage("drawColorAction", isolate(input$draw_color))
       })
-      dataSubmitted <- TRUE
+      dataSubmitted(TRUE)
+      shinyjs::hide("showConfInterval")
+
       # Close the modal dialog
       removeModal()
     })
@@ -722,8 +759,6 @@ function(input, output, session) {
     })
     
     observeEvent(input$submitRData, {
-      shinyjs::hide("showConfInterval")
-      
       cols <- selectedColumns()
       dataset <- switch(input$datasetSelector,
                         mtcars = mtcars,
@@ -742,11 +777,11 @@ function(input, output, session) {
       if(is.null(data)) return()
 
       output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, draw_region_color = color) })
+      dataSubmitted(TRUE)
+      shinyjs::hide("showConfInterval")
       removeModal()
     })
     
-    if (!dataSubmitted) {
-      output$shinydrawr <- r2d3::renderD3({ drawr_output() })
-    }
+    output$shinydrawr <- r2d3::renderD3({ drawr_output() })
     
   }
