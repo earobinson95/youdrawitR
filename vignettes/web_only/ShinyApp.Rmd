@@ -1,4 +1,4 @@
-ead.c---
+---
 title: "Shiny App"
 output: rmarkdown::html_vignette
 vignette: >

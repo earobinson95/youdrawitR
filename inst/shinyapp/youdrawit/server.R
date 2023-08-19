@@ -16,7 +16,7 @@ library(utils)
 library(stats)
 library(r2d3)
 library(colourpicker)
-library(clipr)
+library(rclipboard)
 
 # Define server logic required to draw a histogram
 function(input, output, session) {
@@ -202,7 +202,6 @@ function(input, output, session) {
         }
       }
     )
-    session$onSessionEnded(stopApp)
     
     copied_text <- reactiveValues(text = "")
     
