@@ -149,11 +149,14 @@ navbarPage(
                       rclipboardSetup(),
                       div(style = "margin-top: -10px;",
                           fluidRow(
-                            column(width = 9, align = "right", class = "text-right", 
-                                   downloadButton("saveData", label = "", title = "Download Data")),
-                            column(width = 3, align = "left", style = "display: flex; justify-content: flex-end;", uiOutput("clip")
+                            column(width = 12, align = "right",
+                                   div(style = "display: flex;",
+                                       downloadButton("saveData", label = "", title = "Download Data", style = "margin-left: auto;"),
+                                       uiOutput("clip")
+                                   )
+                            )
                           )
-                          )
+                          
                       )
                     ),
                     div(
