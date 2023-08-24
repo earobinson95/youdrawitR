@@ -851,6 +851,7 @@ if ((state.show_tooltip) || (typeof Shiny !== 'undefined')) {
   tooltipGroup.append("rect")
       .attr("width", 105)  // Adjusted width
       .attr("height", 25)  // Adjusted height
+      .attr("y", -20)
       .attr("rx", 8)  // Rounded corners
       .attr("ry", 8)  // Rounded corners
       .attr("fill", "#fff")
@@ -860,7 +861,7 @@ if ((state.show_tooltip) || (typeof Shiny !== 'undefined')) {
   // Append a text element for the tooltip text
   tooltipGroup.append("text")
       .attr("x", 7)  // Adjusted position
-      .attr("y", 17)  // Adjusted position
+      .attr("y", -3)  // Adjusted position
       .attr("font-size", "12px")  // Reduced font size
       .text("");
 }
@@ -951,7 +952,7 @@ function draw_rectangle({svg, drawable_points, line_data, draw_start, width, hei
         tooltipGroup.select("text").text("Progress: " + (progress * 100).toFixed(2) + "%");
 
         // Show tooltip and set its position
-        tooltipGroup.attr("transform", `translate(${mouseX + 50},${mouseY - 20})`)
+        tooltipGroup.attr("transform", `translate(${mouseX + 50},${mouseY})`)
             .attr("visibility", "visible");
       } else {
         // Hide tooltip
