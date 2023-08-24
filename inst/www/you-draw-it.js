@@ -823,39 +823,62 @@ function draw_points({svg, point_data, points_end, points}, scales){
 }
 
 if ((state.show_tooltip) || (typeof Shiny !== 'undefined')) {
-  var tooltip = d3.select("body").append("div")
-  .attr("class", "tooltip")
-  .style("position", "absolute")
-  .style("opacity", 0)
-  .style("padding", "6px")
-  .style("background-color", "#fff")
-  .style("color", "#333")
-  .style("border", "1px solid #ccc")
-  .style("border-radius", "4px")
-  .style("font-size", "14px")
-  .style("pointer-events", "none");
+  var tooltipGroup = svg.append("g")
+      .attr("class", "tooltipGroup")
+      .attr("visibility", "hidden");
+  
+  // Define a drop shadow filter
+  var defs = svg.append("defs");
+  var filter = defs.append("filter")
+      .attr("id", "drop-shadow")
+      .attr("height", "130%");
+  filter.append("feGaussianBlur")
+      .attr("in", "SourceAlpha")
+      .attr("stdDeviation", 2)
+      .attr("result", "blur");
+  filter.append("feOffset")
+      .attr("in", "blur")
+      .attr("dx", 1)
+      .attr("dy", 1)
+      .attr("result", "offsetBlur");
+  var feMerge = filter.append("feMerge");
+  feMerge.append("feMergeNode")
+      .attr("in", "offsetBlur");
+  feMerge.append("feMergeNode")
+      .attr("in", "SourceGraphic");
+  
+  // Append a rectangle for the tooltip background
+  tooltipGroup.append("rect")
+      .attr("width", 105)  // Adjusted width
+      .attr("height", 25)  // Adjusted height
+      .attr("rx", 8)  // Rounded corners
+      .attr("ry", 8)  // Rounded corners
+      .attr("fill", "#fff")
+      .attr("stroke", "#ccc")
+      .style("filter", "url(#drop-shadow)");  // Apply the drop shadow filter
+  
+  // Append a text element for the tooltip text
+  tooltipGroup.append("text")
+      .attr("x", 7)  // Adjusted position
+      .attr("y", 17)  // Adjusted position
+      .attr("font-size", "12px")  // Reduced font size
+      .text("");
 }
+
 
 if(typeof Shiny !== 'undefined') {
   // Recieve message from shiny to show or hide tooltip
-  Shiny.addCustomMessageHandler("tooltipState", function(newState) {
-    if (newState) {
-      tooltip = d3.select("body").append("div")
-        .attr("class", "tooltip")
-        .style("position", "absolute")
-        .style("opacity", 0)
-        .style("padding", "6px")
-        .style("background-color", "#fff")
-        .style("color", "#333")
-        .style("border", "1px solid #ccc")
-        .style("border-radius", "4px")
-        .style("font-size", "14px")
-        .style("pointer-events", "none");
-    }
-    else {
-      d3.select(".tooltip").remove();
-    }
-  });
+  tooltipGroup.style("opacity", 0);
+    Shiny.addCustomMessageHandler("tooltipState", function(newState) {
+        showTooltip = newState;
+        if (newState) {
+            // Show the tooltip group
+            tooltipGroup.style("opacity", 1);
+        } else {
+            // Hide the tooltip group
+            tooltipGroup.style("opacity", 0);
+        }
+    });
 }
 
 function draw_rectangle({svg, drawable_points, line_data, draw_start, width, height, free_draw, x_by}, scales){
@@ -905,7 +928,7 @@ function draw_rectangle({svg, drawable_points, line_data, draw_start, width, hei
       })
     };
 
-    if (typeof tooltip !== 'undefined') {
+    if (typeof tooltipGroup  !== 'undefined') {
       svg.on("mousemove", function(d) {
       // Get the mouse coordinates relative to the SVG container
       var [mouseX, mouseY] = d3.mouse(this);
@@ -924,26 +947,21 @@ function draw_rectangle({svg, drawable_points, line_data, draw_start, width, hei
         // Set the progress to a minimum of 0 if it is negative
         progress = Math.max(progress, 0);
         
-        // Show tooltip
-        tooltip.transition()
-          .duration(200)
-          .style("opacity", 1);
-        tooltip.html("Progress: " + (progress * 100).toFixed(2) + "%")
-          .style("left", (d3.event.pageX + 10) + "px")
-          .style("top", (d3.event.pageY - 28) + "px");
+        // Update tooltip text
+        tooltipGroup.select("text").text("Progress: " + (progress * 100).toFixed(2) + "%");
+
+        // Show tooltip and set its position
+        tooltipGroup.attr("transform", `translate(${mouseX + 50},${mouseY - 20})`)
+            .attr("visibility", "visible");
       } else {
         // Hide tooltip
-        tooltip.transition()
-          .duration(200)
-          .style("opacity", 0);
+        tooltipGroup.attr("visibility", "hidden");
       }
     });
     
     // Hide tooltip when mouse leaves the SVG container
     svg.on("mouseleave", function() {
-      tooltip.transition()
-        .duration(200)
-        .style("opacity", 0);
+      tooltipGroup.attr("visibility", "hidden");
     });
     }
 }
