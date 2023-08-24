@@ -49,7 +49,7 @@ navbarPage(
               checkboxInput(
                 inputId = "tooltipButton",
                 label = "Show/Hide Tooltip",
-                value = TRUE
+                value = FALSE
               ),
               checkboxInput("showConfInterval", 
                             "Confidence Interval", 

@@ -615,18 +615,9 @@ function(input, output, session) {
       removeModal()
     })
     
-    # Function to send the tooltip state to JavaScript
-    sendTooltipState <- function(state) {
-      session$sendCustomMessage("tooltipState", state)
-    }
-    
-    # Initialize the tooltip state
-    tooltipState <- reactiveVal(TRUE)
-    
     # Update the tooltip state based on the checkbox input
     observeEvent(input$tooltipButton, {
-      tooltipState(input$tooltipButton)
-      sendTooltipState(tooltipState())
+      session$sendCustomMessage("tooltipState", input$tooltipButton)
     })
     
     # Reactive values to hold selected x and y columns
