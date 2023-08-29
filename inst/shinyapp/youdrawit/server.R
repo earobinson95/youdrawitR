@@ -17,6 +17,7 @@ library(stats)
 library(r2d3)
 library(colourpicker)
 library(rclipboard)
+library(palmerpenguins)
 
 # Define server logic required to draw a histogram
 function(input, output, session) {
@@ -627,6 +628,7 @@ function(input, output, session) {
     observeEvent(input$rDataset, {
       # Reset selectedColumns
       selectedColumns(c(NA, NA))
+      updateSelectInput(session, "regressionType", selected = "linear")
       
       session$sendCustomMessage("resetAction", "true")
       if (input$mybutton %% 2 == 1) { # If button has been clicked odd number of times
@@ -651,7 +653,7 @@ function(input, output, session) {
         fluidRow(
           column(width = 6,
               selectizeInput('datasetSelector', 'Choose a dataset', 
-                                choices = c('mtcars', 'iris', 'airquality'))
+                                choices = c('mtcars', 'penguins', 'airquality', 'trees', 'USArrests', 'iris'))
           ),
           column(width = 6,
               wellPanel(uiOutput("selectedColumns"))
@@ -699,11 +701,45 @@ function(input, output, session) {
         ')),
         
         footer = tagList(
+          column(width = 6, align = "left",
+          bsButton("options", label = "More Options", 
+                   style = "default", size = "small", 
+                   title = "Toggle advanced regression options")),
+          column(width = 6, align = "right",
           actionButton("submitRData", "Submit", class = "btn btn-primary"),
           modalButton("Cancel")
+          )
+        ),
+        wellPanel(id = "advancedOptions", style = "display: none;",  # hidden by default
+                  selectInput('regressionType', 'Choose Regression Type',
+                              choices = c('linear', 'polynomial', 'loess', 'logistic')),
+                  conditionalPanel(
+                    condition = "input.regressionType == 'linear'",
+                    checkboxInput(inputId = "confIntR",
+                                  label = "Display 95% Confidence Interval Bounds",
+                                  value = FALSE)
+                  ),
+                  conditionalPanel(
+                    condition = "input.regressionType == 'polynomial'",
+                    sliderInput("degreePoly", "Polynomial Degree:", min = 2, max = 10, value = 2)
+                  ),
+                  conditionalPanel(
+                    condition = "input.regressionType == 'loess'",
+                    sliderInput("span", "Span:", min = 0.01, max = 1, value = 0.75, step = 0.01),
+                    sliderInput("degreeLoess", "Degree:", min = 0, max = 2, value = 1)
+                  ),
+                  conditionalPanel(
+                    condition = "input.regressionType == 'logistic'",
+                    uiOutput("logisticSettings")
+                  )
         )
       ))
     })
+    
+    observeEvent(input$options, {
+      shinyjs::toggle("advancedOptions")
+    })
+    
     
     observeEvent(input$datasetSelector, {
       selectedColumns(c(NA, NA))
@@ -715,7 +751,10 @@ function(input, output, session) {
       dataset <- switch(input$datasetSelector,
                         mtcars = mtcars,
                         iris = iris,
-                        airquality = airquality)
+                        airquality = airquality,
+                        trees = trees,
+                        USArrests = USArrests,
+                        penguins = palmerpenguins::penguins)
       
       datatable(dataset, 
                 options = list(columnDefs = list(list(targets = '_all', className = 'dt-center'))),
@@ -742,6 +781,26 @@ function(input, output, session) {
       selectedColumns(currentColumns)
     })
     
+    output$logisticSettings <- renderUI({
+      req(selectedColumns())
+      dataset <- switch(input$datasetSelector,
+                        mtcars = mtcars,
+                        iris = iris,
+                        airquality = airquality,
+                        trees = trees,
+                        USArrests = USArrests,
+                        penguins = palmerpenguins::penguins)
+      col <- selectedColumns()[2]
+      if (is.factor(dataset[[col]])) {
+        title <- "Choose a level as 'Success'. All other levels will be treated as 'Failure':"
+        levelsList = levels(dataset[[col]])
+        radioButtons("successLevel", title, levelsList)
+      } else {
+        title <- "For logistic regression, Y-variable must be a categorical variable."
+        tags$h4(title, style = "color:red;")
+      }
+    })
+    
     output$selectedColumns <- renderUI({
       cols <- selectedColumns()
       output_text <- paste("<strong>Currently Selected Columns</strong><br>",
@@ -751,13 +810,32 @@ function(input, output, session) {
     
     observeEvent(input$submitRData, {
       cols <- selectedColumns()
-      dataset <- switch(input$datasetSelector,
+            dataset <- switch(input$datasetSelector,
                         mtcars = mtcars,
                         iris = iris,
-                        airquality = airquality)
+                        airquality = airquality,
+                        trees = trees,
+                        USArrests = USArrests,
+                        penguins = palmerpenguins::penguins)
       
+      reg <- input$regressionType
       data <- tryCatch({
-        customDataGen(dataset, cols[1], cols[2])
+        switch(reg,
+               'linear' = {
+                 customDataGen(dataset, cols[1], cols[2], regression_type = reg, conf_int = TRUE)
+               },
+               'polynomial' = {
+                 customDataGen(dataset, cols[1], cols[2], regression_type = reg, degree = input$degreeLoess)
+               },
+               'loess' = {
+                 customDataGen(dataset, cols[1], cols[2], regression_type = reg, degree = input$degreePoly, span = input$span)
+               },
+               'logistic' = {
+                 success_val <- input$successLevel
+                 dataset[[cols[2]]] <- ifelse(dataset[[cols[2]]] == success_val, success_val, "Failure")
+                 customDataGen(dataset, cols[1], cols[2], regression_type = reg, success_level = success_val)
+               }
+        )
         }, error = function(e) {
         showNotification(paste("Error generating data:", e$message), type = "error")
         removeModal()
@@ -766,8 +844,12 @@ function(input, output, session) {
       
       # Stop execution if an error occurred while generating data
       if(is.null(data)) return()
-
-      output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, draw_region_color = color) })
+      if ((reg == 'linear') && (input$confIntR)) {
+        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, draw_region_color = color, conf_int = TRUE) })
+      }
+      else {
+        output$shinydrawr <- r2d3::renderD3({ drawr(data, hide_buttons = T, draw_region_color = color) })
+      }
       dataSubmitted(TRUE)
       shinyjs::hide("showConfInterval")
       removeModal()
