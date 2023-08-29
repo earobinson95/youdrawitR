@@ -16,7 +16,6 @@ library(utils)
 library(stats)
 library(r2d3)
 library(colourpicker)
-library(shinyBS)
 library(rclipboard)
 library(palmerpenguins)
 
