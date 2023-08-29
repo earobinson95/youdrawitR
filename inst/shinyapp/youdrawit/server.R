@@ -18,6 +18,7 @@ library(r2d3)
 library(colourpicker)
 library(rclipboard)
 library(palmerpenguins)
+library(shinyBS)
 
 # Define server logic required to draw a histogram
 function(input, output, session) {
